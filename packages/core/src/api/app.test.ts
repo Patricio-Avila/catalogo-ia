@@ -181,7 +181,7 @@ describe("POST /buscar: validación de la petición", () => {
 describe("errores y CORS", () => {
   it("un fallo del acceso a datos devuelve 500 genérico y registra el detalle", async () => {
     const { app, acceso, registros } = montar();
-    acceso.buscar = async () => { throw new Error("conexión rechazada: postgres://usuario:secreto@host"); };
+    acceso.buscar = async () => { throw new Error("conexión rechazada (detalle interno que no debe salir)"); };
     const r = await post(app, "/buscar", { dominio: "belleza", texto: "protector solar vegano", filtros_vigentes: null });
     expect(r.status).toBe(500);
     expect(await r.json()).toEqual({ error: "error_interno" });
