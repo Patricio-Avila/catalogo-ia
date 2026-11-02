@@ -11,6 +11,21 @@ export function normalizarValor(texto: string): string {
 }
 
 /**
+ * Forma canónica de una petición para la caché exacta (CLAUDE.md §6, paso 1):
+ * minúsculas, sin acentos, puntuación fuera, espacios colapsados y cada número
+ * sustituido por "#". Así "menos de 300 pesos" y "Menos de 250 pesos" comparten
+ * interpretación; el valor concreto lo repone el extractor numérico.
+ */
+export function normalizarPeticion(texto: string): string {
+  return quitarAcentos(texto)
+    .toLowerCase()
+    .replace(/\d+(?:[.,]\d+)*/g, "#")
+    .replace(/[^\p{L}#/\s]/gu, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+/**
  * Convierte a número lo que el modelo o el extractor entregan: acepta números,
  * cadenas con signo de pesos, separador de miles con coma y decimal con punto o coma.
  * Devuelve null si no es un número.

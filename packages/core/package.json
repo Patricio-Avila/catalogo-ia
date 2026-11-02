@@ -18,6 +18,7 @@
     "vitest": "^5.0.5"
   },
   "dependencies": {
+    "postgres": "^4.0.0",
     "zod": "^4.6.7"
   }
 }
