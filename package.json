@@ -12,6 +12,7 @@
   "engines": {
     "node": ">=20"
   },
+  "packageManager": "pnpm@12.16.1",
   "devDependencies": {
     "supabase": "^2.122.0",
     "typescript": "^7.0.2"
