@@ -30,17 +30,19 @@ import { aBooleano, aNumero, normalizarValor } from "../texto";
 
 export type Origen = "modelo" | "usuario";
 
-export type MotivoDescarte =
-  | "dominio_no_coincide"
-  | "categoria_no_pertenece"
-  | "atributo_desconocido"
-  | "atributo_no_inferible"
-  | "operador_desconocido"
-  | "operador_incompatible"
-  | "valor_no_convertible"
-  | "valor_fuera_de_dominio"
-  | "valor_fuera_de_rango"
-  | "duplicado";
+export const MOTIVOS_DESCARTE = [
+  "dominio_no_coincide",
+  "categoria_no_pertenece",
+  "atributo_desconocido",
+  "atributo_no_inferible",
+  "operador_desconocido",
+  "operador_incompatible",
+  "valor_no_convertible",
+  "valor_fuera_de_dominio",
+  "valor_fuera_de_rango",
+  "duplicado",
+] as const;
+export type MotivoDescarte = (typeof MOTIVOS_DESCARTE)[number];
 
 export interface Descartado {
   atributo: string;

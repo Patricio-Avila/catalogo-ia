@@ -1,0 +1,1200 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "catalogo-ia",
+    "version": "0.1.0",
+    "description": "Filtrado asistido por IA sobre catálogos con atributos heterogéneos. El modelo nunca escribe SQL: devuelve un objeto de filtros validado contra el diccionario (G1) y la base lo ejecuta con funciones parametrizadas (G2)."
+  },
+  "components": {
+    "schemas": {},
+    "parameters": {}
+  },
+  "paths": {
+    "/salud": {
+      "get": {
+        "summary": "Estado de la API y versión del núcleo",
+        "responses": {
+          "200": {
+            "description": "ok",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "estado": {
+                      "type": "string",
+                      "enum": [
+                        "ok"
+                      ]
+                    },
+                    "nucleo": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "estado",
+                    "nucleo"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/diccionario/{dominio}": {
+      "get": {
+        "summary": "Diccionario de atributos de una vertical (para etiquetas manuales, RF-10)",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "enum": [
+                "farmacia",
+                "llantas",
+                "belleza"
+              ]
+            },
+            "required": true,
+            "name": "dominio",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "diccionario",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "dominio": {
+                      "type": "string",
+                      "enum": [
+                        "farmacia",
+                        "llantas",
+                        "belleza"
+                      ]
+                    },
+                    "version": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "categorias": {
+                      "type": "array",
+                      "items": {
+                        "type": "string",
+                        "minLength": 1
+                      },
+                      "minItems": 1
+                    },
+                    "entradas": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "categoria": {
+                            "type": "string",
+                            "minLength": 1,
+                            "maxLength": 64
+                          },
+                          "atributo": {
+                            "type": "string",
+                            "minLength": 1,
+                            "maxLength": 64,
+                            "pattern": "^[a-z][a-z0-9_]*$"
+                          },
+                          "tipo": {
+                            "type": "string",
+                            "enum": [
+                              "texto",
+                              "numero",
+                              "booleano"
+                            ]
+                          },
+                          "valores": {
+                            "type": "array",
+                            "items": {
+                              "type": "string"
+                            }
+                          },
+                          "minimo": {
+                            "type": "number"
+                          },
+                          "maximo": {
+                            "type": "number"
+                          },
+                          "cobertura_pct": {
+                            "type": "number",
+                            "minimum": 0,
+                            "maximum": 100
+                          },
+                          "obligatorio": {
+                            "type": "boolean"
+                          },
+                          "define_uso": {
+                            "type": "boolean"
+                          },
+                          "define_riesgo": {
+                            "type": "boolean"
+                          },
+                          "inferible": {
+                            "type": "boolean"
+                          },
+                          "peso": {
+                            "type": "number",
+                            "minimum": 0
+                          }
+                        },
+                        "required": [
+                          "categoria",
+                          "atributo",
+                          "tipo",
+                          "cobertura_pct",
+                          "obligatorio",
+                          "define_uso",
+                          "define_riesgo",
+                          "inferible"
+                        ]
+                      }
+                    }
+                  },
+                  "required": [
+                    "dominio",
+                    "version",
+                    "categorias",
+                    "entradas"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "dominio inválido",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string",
+                      "enum": [
+                        "peticion_invalida",
+                        "no_encontrado",
+                        "error_interno"
+                      ]
+                    },
+                    "campos": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "ruta": {
+                            "type": "string"
+                          },
+                          "mensaje": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "ruta",
+                          "mensaje"
+                        ]
+                      }
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/buscar": {
+      "post": {
+        "summary": "Interpreta texto libre o aplica una acción estructurada y busca",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "dominio": {
+                    "type": "string",
+                    "enum": [
+                      "farmacia",
+                      "llantas",
+                      "belleza"
+                    ]
+                  },
+                  "texto": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 500
+                  },
+                  "accion": {
+                    "oneOf": [
+                      {
+                        "type": "object",
+                        "properties": {
+                          "tipo": {
+                            "type": "string",
+                            "enum": [
+                              "quitar"
+                            ]
+                          },
+                          "atributo": {
+                            "type": "string"
+                          },
+                          "operador": {
+                            "type": "string",
+                            "enum": [
+                              "=",
+                              "<>",
+                              "<",
+                              "<=",
+                              ">",
+                              ">="
+                            ]
+                          },
+                          "valor": {
+                            "anyOf": [
+                              {
+                                "type": "string",
+                                "maxLength": 200
+                              },
+                              {
+                                "type": "number"
+                              },
+                              {
+                                "type": "boolean"
+                              }
+                            ]
+                          }
+                        },
+                        "required": [
+                          "tipo",
+                          "atributo",
+                          "operador",
+                          "valor"
+                        ]
+                      },
+                      {
+                        "type": "object",
+                        "properties": {
+                          "tipo": {
+                            "type": "string",
+                            "enum": [
+                              "faceta"
+                            ]
+                          },
+                          "atributo": {
+                            "type": "string"
+                          },
+                          "valor": {
+                            "anyOf": [
+                              {
+                                "type": "string",
+                                "maxLength": 200
+                              },
+                              {
+                                "type": "number"
+                              },
+                              {
+                                "type": "boolean"
+                              }
+                            ]
+                          }
+                        },
+                        "required": [
+                          "tipo",
+                          "atributo",
+                          "valor"
+                        ]
+                      },
+                      {
+                        "type": "object",
+                        "properties": {
+                          "tipo": {
+                            "type": "string",
+                            "enum": [
+                              "incluir_sin_dato"
+                            ]
+                          },
+                          "valor": {
+                            "type": "boolean"
+                          }
+                        },
+                        "required": [
+                          "tipo",
+                          "valor"
+                        ]
+                      },
+                      {
+                        "type": "object",
+                        "properties": {
+                          "tipo": {
+                            "type": "string",
+                            "enum": [
+                              "reiniciar"
+                            ]
+                          }
+                        },
+                        "required": [
+                          "tipo"
+                        ]
+                      },
+                      {
+                        "type": "object",
+                        "properties": {
+                          "tipo": {
+                            "type": "string",
+                            "enum": [
+                              "agregar"
+                            ]
+                          },
+                          "filtro": {
+                            "type": "object",
+                            "properties": {
+                              "atributo": {
+                                "type": "string",
+                                "minLength": 1,
+                                "maxLength": 64,
+                                "pattern": "^[a-z][a-z0-9_]*$"
+                              },
+                              "operador": {
+                                "type": "string",
+                                "enum": [
+                                  "=",
+                                  "<>",
+                                  "<",
+                                  "<=",
+                                  ">",
+                                  ">="
+                                ]
+                              },
+                              "valor": {
+                                "anyOf": [
+                                  {
+                                    "type": "string",
+                                    "maxLength": 200
+                                  },
+                                  {
+                                    "type": "number"
+                                  },
+                                  {
+                                    "type": "boolean"
+                                  }
+                                ]
+                              }
+                            },
+                            "required": [
+                              "atributo",
+                              "operador",
+                              "valor"
+                            ]
+                          }
+                        },
+                        "required": [
+                          "tipo",
+                          "filtro"
+                        ]
+                      },
+                      {
+                        "type": "object",
+                        "properties": {
+                          "tipo": {
+                            "type": "string",
+                            "enum": [
+                              "categoria"
+                            ]
+                          },
+                          "categoria": {
+                            "type": [
+                              "string",
+                              "null"
+                            ]
+                          }
+                        },
+                        "required": [
+                          "tipo",
+                          "categoria"
+                        ]
+                      }
+                    ]
+                  },
+                  "filtros_vigentes": {
+                    "type": [
+                      "object",
+                      "null"
+                    ],
+                    "properties": {
+                      "dominio": {
+                        "type": "string",
+                        "enum": [
+                          "farmacia",
+                          "llantas",
+                          "belleza"
+                        ]
+                      },
+                      "categoria": {
+                        "type": [
+                          "string",
+                          "null"
+                        ],
+                        "maxLength": 64
+                      },
+                      "filtros": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "atributo": {
+                              "type": "string",
+                              "minLength": 1,
+                              "maxLength": 64,
+                              "pattern": "^[a-z][a-z0-9_]*$"
+                            },
+                            "operador": {
+                              "type": "string",
+                              "enum": [
+                                "=",
+                                "<>",
+                                "<",
+                                "<=",
+                                ">",
+                                ">="
+                              ]
+                            },
+                            "valor": {
+                              "anyOf": [
+                                {
+                                  "type": "string",
+                                  "maxLength": 200
+                                },
+                                {
+                                  "type": "number"
+                                },
+                                {
+                                  "type": "boolean"
+                                }
+                              ]
+                            }
+                          },
+                          "required": [
+                            "atributo",
+                            "operador",
+                            "valor"
+                          ]
+                        },
+                        "maxItems": 20
+                      },
+                      "incluir_sin_dato": {
+                        "type": "boolean"
+                      }
+                    },
+                    "required": [
+                      "dominio",
+                      "categoria",
+                      "filtros",
+                      "incluir_sin_dato"
+                    ]
+                  },
+                  "limite": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 200
+                  }
+                },
+                "required": [
+                  "dominio",
+                  "filtros_vigentes"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "resultados, etiquetas, facetas y aclaración",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "filtros": {
+                      "type": "object",
+                      "properties": {
+                        "dominio": {
+                          "type": "string",
+                          "enum": [
+                            "farmacia",
+                            "llantas",
+                            "belleza"
+                          ]
+                        },
+                        "categoria": {
+                          "type": [
+                            "string",
+                            "null"
+                          ],
+                          "maxLength": 64
+                        },
+                        "filtros": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "atributo": {
+                                "type": "string",
+                                "minLength": 1,
+                                "maxLength": 64,
+                                "pattern": "^[a-z][a-z0-9_]*$"
+                              },
+                              "operador": {
+                                "type": "string",
+                                "enum": [
+                                  "=",
+                                  "<>",
+                                  "<",
+                                  "<=",
+                                  ">",
+                                  ">="
+                                ]
+                              },
+                              "valor": {
+                                "anyOf": [
+                                  {
+                                    "type": "string",
+                                    "maxLength": 200
+                                  },
+                                  {
+                                    "type": "number"
+                                  },
+                                  {
+                                    "type": "boolean"
+                                  }
+                                ]
+                              }
+                            },
+                            "required": [
+                              "atributo",
+                              "operador",
+                              "valor"
+                            ]
+                          },
+                          "maxItems": 20
+                        },
+                        "incluir_sin_dato": {
+                          "type": "boolean"
+                        }
+                      },
+                      "required": [
+                        "dominio",
+                        "categoria",
+                        "filtros",
+                        "incluir_sin_dato"
+                      ]
+                    },
+                    "etiquetas": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "atributo": {
+                            "type": "string",
+                            "minLength": 1,
+                            "maxLength": 64,
+                            "pattern": "^[a-z][a-z0-9_]*$"
+                          },
+                          "operador": {
+                            "type": "string",
+                            "enum": [
+                              "=",
+                              "<>",
+                              "<",
+                              "<=",
+                              ">",
+                              ">="
+                            ]
+                          },
+                          "valor": {
+                            "anyOf": [
+                              {
+                                "type": "string",
+                                "maxLength": 200
+                              },
+                              {
+                                "type": "number"
+                              },
+                              {
+                                "type": "boolean"
+                              }
+                            ]
+                          },
+                          "confianza": {
+                            "type": "number",
+                            "minimum": 0,
+                            "maximum": 1
+                          },
+                          "origen": {
+                            "type": "string",
+                            "enum": [
+                              "modelo",
+                              "usuario",
+                              "cache"
+                            ]
+                          },
+                          "nivel": {
+                            "type": "string",
+                            "enum": [
+                              "alta",
+                              "media",
+                              "baja"
+                            ]
+                          },
+                          "sugerida": {
+                            "type": "boolean"
+                          },
+                          "fragmento": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "atributo",
+                          "operador",
+                          "valor",
+                          "confianza",
+                          "origen",
+                          "nivel",
+                          "sugerida"
+                        ]
+                      }
+                    },
+                    "descartados": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "atributo": {
+                            "type": "string"
+                          },
+                          "operador": {
+                            "type": "string"
+                          },
+                          "valor": {},
+                          "motivo": {
+                            "type": "string",
+                            "enum": [
+                              "dominio_no_coincide",
+                              "categoria_no_pertenece",
+                              "atributo_desconocido",
+                              "atributo_no_inferible",
+                              "operador_desconocido",
+                              "operador_incompatible",
+                              "valor_no_convertible",
+                              "valor_fuera_de_dominio",
+                              "valor_fuera_de_rango",
+                              "duplicado"
+                            ]
+                          },
+                          "detalle": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "atributo",
+                          "motivo",
+                          "detalle"
+                        ]
+                      }
+                    },
+                    "resultados": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "integer"
+                          },
+                          "nombre": {
+                            "type": "string"
+                          },
+                          "marca": {
+                            "type": "string"
+                          },
+                          "precio": {
+                            "type": "number"
+                          },
+                          "descripcion": {
+                            "type": "string"
+                          },
+                          "cumple": {
+                            "type": "array",
+                            "items": {
+                              "type": "string",
+                              "minLength": 1,
+                              "maxLength": 64,
+                              "pattern": "^[a-z][a-z0-9_]*$"
+                            }
+                          },
+                          "sin_dato": {
+                            "type": "array",
+                            "items": {
+                              "type": "string",
+                              "minLength": 1,
+                              "maxLength": 64,
+                              "pattern": "^[a-z][a-z0-9_]*$"
+                            }
+                          }
+                        },
+                        "required": [
+                          "id",
+                          "nombre",
+                          "marca",
+                          "precio",
+                          "descripcion",
+                          "cumple",
+                          "sin_dato"
+                        ]
+                      }
+                    },
+                    "total": {
+                      "type": "integer",
+                      "minimum": 0
+                    },
+                    "faltantes": {
+                      "type": "integer",
+                      "minimum": 0
+                    },
+                    "facetas": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "atributo": {
+                            "type": "string",
+                            "minLength": 1,
+                            "maxLength": 64,
+                            "pattern": "^[a-z][a-z0-9_]*$"
+                          },
+                          "valores": {
+                            "type": "array",
+                            "items": {
+                              "type": "object",
+                              "properties": {
+                                "valor": {
+                                  "type": "string"
+                                },
+                                "productos": {
+                                  "type": "integer",
+                                  "minimum": 0
+                                }
+                              },
+                              "required": [
+                                "valor",
+                                "productos"
+                              ]
+                            }
+                          }
+                        },
+                        "required": [
+                          "atributo",
+                          "valores"
+                        ]
+                      }
+                    },
+                    "aclaracion": {
+                      "type": [
+                        "object",
+                        "null"
+                      ],
+                      "properties": {
+                        "pregunta": {
+                          "type": "string"
+                        },
+                        "opciones": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          }
+                        },
+                        "filtros_dudosos": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "atributo": {
+                                "type": "string",
+                                "minLength": 1,
+                                "maxLength": 64,
+                                "pattern": "^[a-z][a-z0-9_]*$"
+                              },
+                              "operador": {
+                                "type": "string",
+                                "enum": [
+                                  "=",
+                                  "<>",
+                                  "<",
+                                  "<=",
+                                  ">",
+                                  ">="
+                                ]
+                              },
+                              "valor": {
+                                "anyOf": [
+                                  {
+                                    "type": "string",
+                                    "maxLength": 200
+                                  },
+                                  {
+                                    "type": "number"
+                                  },
+                                  {
+                                    "type": "boolean"
+                                  }
+                                ]
+                              },
+                              "confianza": {
+                                "type": "number",
+                                "minimum": 0,
+                                "maximum": 1
+                              },
+                              "fragmento": {
+                                "type": "string",
+                                "maxLength": 200
+                              }
+                            },
+                            "required": [
+                              "atributo",
+                              "operador",
+                              "valor",
+                              "confianza"
+                            ]
+                          }
+                        }
+                      },
+                      "required": [
+                        "pregunta",
+                        "opciones",
+                        "filtros_dudosos"
+                      ]
+                    },
+                    "sin_consultar": {
+                      "type": "boolean"
+                    },
+                    "desde_cache": {
+                      "type": "boolean"
+                    },
+                    "llamo_modelo": {
+                      "type": "boolean"
+                    }
+                  },
+                  "required": [
+                    "filtros",
+                    "etiquetas",
+                    "descartados",
+                    "resultados",
+                    "total",
+                    "faltantes",
+                    "facetas",
+                    "aclaracion",
+                    "sin_consultar",
+                    "desde_cache",
+                    "llamo_modelo"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "petición inválida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string",
+                      "enum": [
+                        "peticion_invalida",
+                        "no_encontrado",
+                        "error_interno"
+                      ]
+                    },
+                    "campos": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "ruta": {
+                            "type": "string"
+                          },
+                          "mensaje": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "ruta",
+                          "mensaje"
+                        ]
+                      }
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ]
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "error interno",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string",
+                      "enum": [
+                        "peticion_invalida",
+                        "no_encontrado",
+                        "error_interno"
+                      ]
+                    },
+                    "campos": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "ruta": {
+                            "type": "string"
+                          },
+                          "mensaje": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "ruta",
+                          "mensaje"
+                        ]
+                      }
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/facetas": {
+      "post": {
+        "summary": "Facetas sobre el conjunto resultante, incluido el grupo sin dato (RF-07)",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "filtros": {
+                    "type": "object",
+                    "properties": {
+                      "dominio": {
+                        "type": "string",
+                        "enum": [
+                          "farmacia",
+                          "llantas",
+                          "belleza"
+                        ]
+                      },
+                      "categoria": {
+                        "type": [
+                          "string",
+                          "null"
+                        ],
+                        "maxLength": 64
+                      },
+                      "filtros": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "atributo": {
+                              "type": "string",
+                              "minLength": 1,
+                              "maxLength": 64,
+                              "pattern": "^[a-z][a-z0-9_]*$"
+                            },
+                            "operador": {
+                              "type": "string",
+                              "enum": [
+                                "=",
+                                "<>",
+                                "<",
+                                "<=",
+                                ">",
+                                ">="
+                              ]
+                            },
+                            "valor": {
+                              "anyOf": [
+                                {
+                                  "type": "string",
+                                  "maxLength": 200
+                                },
+                                {
+                                  "type": "number"
+                                },
+                                {
+                                  "type": "boolean"
+                                }
+                              ]
+                            }
+                          },
+                          "required": [
+                            "atributo",
+                            "operador",
+                            "valor"
+                          ]
+                        },
+                        "maxItems": 20
+                      },
+                      "incluir_sin_dato": {
+                        "type": "boolean"
+                      }
+                    },
+                    "required": [
+                      "dominio",
+                      "categoria",
+                      "filtros",
+                      "incluir_sin_dato"
+                    ]
+                  },
+                  "atributos": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 64,
+                      "pattern": "^[a-z][a-z0-9_]*$"
+                    },
+                    "maxItems": 20
+                  }
+                },
+                "required": [
+                  "filtros"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "facetas",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "facetas": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "atributo": {
+                            "type": "string",
+                            "minLength": 1,
+                            "maxLength": 64,
+                            "pattern": "^[a-z][a-z0-9_]*$"
+                          },
+                          "valores": {
+                            "type": "array",
+                            "items": {
+                              "type": "object",
+                              "properties": {
+                                "valor": {
+                                  "type": "string"
+                                },
+                                "productos": {
+                                  "type": "integer",
+                                  "minimum": 0
+                                }
+                              },
+                              "required": [
+                                "valor",
+                                "productos"
+                              ]
+                            }
+                          }
+                        },
+                        "required": [
+                          "atributo",
+                          "valores"
+                        ]
+                      }
+                    }
+                  },
+                  "required": [
+                    "facetas"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "petición inválida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string",
+                      "enum": [
+                        "peticion_invalida",
+                        "no_encontrado",
+                        "error_interno"
+                      ]
+                    },
+                    "campos": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "ruta": {
+                            "type": "string"
+                          },
+                          "mensaje": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "ruta",
+                          "mensaje"
+                        ]
+                      }
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "webhooks": {}
+}

@@ -1,12 +1,26 @@
 // Núcleo agnóstico del proyecto (ADR-0002).
 // Sin dependencias de Deno ni de supabase-js: TypeScript puro.
 
-export const VERSION_NUCLEO = "0.1.0";
+export { VERSION_NUCLEO, salud } from "./salud";
 
-/** Respuesta de salud que la Edge Function expone en GET /salud (T1). */
-export function salud(): { estado: "ok"; nucleo: string } {
-  return { estado: "ok", nucleo: VERSION_NUCLEO };
-}
+// API Hono (§6.2) y tope de gasto
+export { crearApp, CONFIG_OPENAPI, claveCliente } from "./api/app";
+export type { DependenciasApi, AppApi } from "./api/app";
+export { LimiteMemoria, SIN_LIMITE, LIMITE_POR_OMISION as LIMITE_GASTO_POR_OMISION } from "./api/limite_gasto";
+export type { LimiteGasto, OpcionesLimite } from "./api/limite_gasto";
+export {
+  PeticionBuscar,
+  RespuestaBuscar,
+  PeticionFacetas,
+  RespuestaFacetas,
+  RespuestaDiccionario,
+  RespuestaSalud,
+  RespuestaError,
+  EtiquetaApi,
+  DescartadoApi,
+  AclaracionApi,
+  LIMITE_MAXIMO_API,
+} from "./contrato/api";
 
 // Contrato (§6.1 y §6.2)
 export {
@@ -29,7 +43,7 @@ export { Diccionario, EntradaDiccionario, entradasDe } from "./contrato/dicciona
 export { Resultado, ResultadoBusqueda, Faceta, ValorFaceta } from "./contrato/respuestas";
 
 // G1
-export { validarObjetoFiltros } from "./g1/validar";
+export { validarObjetoFiltros, MOTIVOS_DESCARTE } from "./g1/validar";
 export type {
   Origen,
   MotivoDescarte,
@@ -61,6 +75,7 @@ export type { CacheInterpretaciones, EntradaCache, DatosClave } from "./cache/cl
 // Acceso a datos
 export { AccesoPostgres, LIMITE_MAXIMO, LIMITE_POR_OMISION } from "./datos/acceso";
 export type { AccesoDatos, OpcionesPostgres } from "./datos/acceso";
+export { AccesoNulo } from "./datos/acceso_nulo";
 
 // Vocabulario prohibido y utilidades de texto
 export { VOCABULARIO_PROHIBIDO, vocabularioProhibidoEn } from "./vocabulario";
