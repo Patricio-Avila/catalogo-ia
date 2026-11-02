@@ -1,0 +1,23 @@
+# Dependencias y compilados
+node_modules/
+dist/
+build/
+coverage/
+*.tsbuildinfo
+
+# Secretos: nunca al repo (CLAUDE.md §1.6)
+.env
+.env.*
+!.env.example
+
+# Supabase local
+supabase/.temp/
+supabase/.branches/
+supabase/.env
+
+# Sistema y editores
+.DS_Store
+Thumbs.db
+*.log
+.vscode/
+.idea/

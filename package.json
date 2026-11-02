@@ -1,0 +1,19 @@
+{
+  "name": "catalogo-ia",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Filtrado asistido por IA sobre catálogos con atributos heterogéneos",
+  "license": "MIT",
+  "scripts": {
+    "test": "pnpm -r test",
+    "typecheck": "pnpm -r typecheck",
+    "supabase": "supabase"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "devDependencies": {
+    "supabase": "^2.122.0",
+    "typescript": "^7.0.2"
+  }
+}

@@ -1,0 +1,20 @@
+{
+  "name": "@catalogo-ia/core",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Núcleo agnóstico: validación del objeto de filtros, extractor numérico, adaptadores de modelo y acceso a datos",
+  "license": "MIT",
+  "type": "module",
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "vitest": "^5.0.5"
+  }
+}
