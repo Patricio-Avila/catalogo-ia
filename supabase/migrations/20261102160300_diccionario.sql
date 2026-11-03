@@ -21,11 +21,13 @@ json_atributos as (
 variables as (
   select j.dominio, j.categoria, j.atributo,
     case min(jsonb_typeof(j.valor)) when 'number' then 'numero' when 'boolean' then 'booleano' else 'texto' end as tipo,
-    -- dominio de valores solo para texto; más de 200 distintos se considera alta cardinalidad y no se lista
-    case when min(jsonb_typeof(j.valor)) = 'string' and count(distinct j.valor) <= 200
-         then array_agg(distinct (j.valor #>> '{}') order by (j.valor #>> '{}')) end as valores,
-    case when min(jsonb_typeof(j.valor)) = 'number' then min((j.valor #>> '{}')::numeric) end as minimo,
-    case when min(jsonb_typeof(j.valor)) = 'number' then max((j.valor #>> '{}')::numeric) end as maximo,
+    -- Las condiciones van dentro de los agregados: un CASE por fuera no evita que el
+    -- agregado se evalúe sobre todos los grupos, y "::numeric" fallaría con texto.
+    -- Dominio de valores solo para texto; más de 200 distintos es alta cardinalidad y no se lista.
+    case when count(distinct j.valor) <= 200
+         then array_agg(distinct (j.valor #>> '{}') order by (j.valor #>> '{}')) filter (where jsonb_typeof(j.valor) = 'string') end as valores,
+    min(case when jsonb_typeof(j.valor) = 'number' then (j.valor #>> '{}')::numeric end) as minimo,
+    max(case when jsonb_typeof(j.valor) = 'number' then (j.valor #>> '{}')::numeric end) as maximo,
     round(100.0 * count(*) / t.total, 1) as cobertura_pct
   from json_atributos j
   join totales t using (dominio, categoria)
