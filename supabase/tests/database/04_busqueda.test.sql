@@ -127,7 +127,11 @@ select ok(exists (select 1 from facetas_ref where atributo = 'marca'), 'marca en
 select is((select count(distinct atributo) from catalogo.calcular_facetas('belleza', 'cuidado_facial', (select f from filtros_ref), false, array['vegano'])), 1::bigint, 'se puede pedir una faceta concreta');
 
 -- G2: fragmentos SQL en valores y en nombres de atributo no alteran nada
-select is((select count(*) from catalogo.buscar_productos('belleza', 'cuidado_facial', '[{"atributo":"fragancia","operador":"=","valor":"x'' or 1=1; drop table catalogo.producto; --"}]'::jsonb, true, 200)), 0::bigint, 'valor con SQL: cero resultados');
+select is((select count(*) from catalogo.buscar_productos('belleza', 'cuidado_facial', '[{"atributo":"fragancia","operador":"=","valor":"x'' or 1=1; drop table catalogo.producto; --"}]'::jsonb, false, 200)), 0::bigint, 'valor con SQL: cero resultados en modo estricto');
+select is(
+  (select bool_and('fragancia' = any (r.sin_dato))
+   from catalogo.buscar_productos('belleza', 'cuidado_facial', '[{"atributo":"fragancia","operador":"=","valor":"x'' or 1=1; drop table catalogo.producto; --"}]'::jsonb, true, 200) r),
+  true, 'valor con SQL: en modo inclusivo solo vuelven los que no tienen el dato; ninguno coincide con el valor');
 select is((select count(*) from catalogo.buscar_productos('belleza', 'cuidado_facial', '[{"atributo":"fragancia; delete from catalogo.producto","operador":"=","valor":"floral"}]'::jsonb, false, 200)), 0::bigint, 'atributo con SQL: se trata como clave ausente');
 select is((select count(*) from catalogo.buscar_productos('belleza'' or 1=1 --', null, '[]'::jsonb, false, 200)), 0::bigint, 'dominio con SQL: cero resultados');
 select cmp_ok((select count(*) from catalogo.producto), '>=', 100000::bigint, 'la tabla sigue intacta');
