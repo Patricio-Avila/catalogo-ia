@@ -43,9 +43,12 @@ alter role agente_lectura set statement_timeout = '2s';
 alter role agente_api set statement_timeout = '2s';
 alter role agente_api set search_path = catalogo, servicio;
 
--- Esquemas
-grant usage on schema catalogo to catalogo_duenio, agente_lectura;
-grant usage on schema servicio to catalogo_duenio, agente_lectura;
+-- Esquemas. catalogo_duenio necesita CREATE para poder ser dueño de las funciones
+-- y la vista materializada que viven ahí; el agente solo USAGE.
+grant usage, create on schema catalogo to catalogo_duenio;
+grant usage, create on schema servicio to catalogo_duenio;
+grant usage on schema catalogo to agente_lectura;
+grant usage on schema servicio to agente_lectura;
 -- interno: nadie más que el administrador (RNF-02). No se otorga nada.
 
 -- catalogo_duenio: lectura del catálogo (las funciones corren con sus permisos)
