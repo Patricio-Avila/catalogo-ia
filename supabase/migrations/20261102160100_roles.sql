@@ -24,6 +24,14 @@ begin
   if not exists (select 1 from pg_roles where rolname = 'agente_api') then
     create role agente_api login password null;
   end if;
+
+  -- El rol que corre las migraciones (postgres en Supabase) no es superusuario.
+  -- Para cambiar el dueño de funciones y vistas a catalogo_duenio, y para que las
+  -- pruebas hagan SET ROLE agente_lectura, necesita membresía con SET en ambos.
+  -- Con catalogo_duenio hereda además sus privilegios: así puede ejecutar
+  -- refrescar_diccionario() y administrar la caché.
+  execute format('grant catalogo_duenio to %I with set true, inherit true', current_user);
+  execute format('grant agente_lectura to %I with set true, inherit false', current_user);
 end
 $$;
 
