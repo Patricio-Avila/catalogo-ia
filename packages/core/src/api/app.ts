@@ -17,6 +17,7 @@ import {
   RespuestaError,
   RespuestaFacetas,
   RespuestaSalud,
+  RespuestaVerticales,
 } from "../contrato/api";
 import { Dominio, OBJETO_VACIO, type ObjetoFiltros } from "../contrato/filtros";
 import type { Faceta, ResultadoBusqueda } from "../contrato/respuestas";
@@ -91,6 +92,17 @@ export function crearApp(deps: DependenciasApi) {
       responses: { 200: { description: "ok", content: { "application/json": { schema: RespuestaSalud } } } },
     }),
     (c) => c.json(salud(), 200),
+  );
+
+  // GET /verticales
+  app.openapi(
+    createRoute({
+      method: "get",
+      path: "/verticales",
+      summary: "Verticales disponibles con sus categorías, textos y aviso (selector del cliente)",
+      responses: { 200: { description: "verticales", content: { "application/json": { schema: RespuestaVerticales } } } },
+    }),
+    async (c) => c.json({ verticales: await deps.acceso.obtenerVerticales() }, 200),
   );
 
   // GET /diccionario/{dominio}

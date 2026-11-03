@@ -6,28 +6,44 @@ on:
   pull_request:
 
 jobs:
-  pruebas:
+  nucleo:
+    name: Núcleo y API (Vitest)
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-
       - uses: pnpm/action-setup@v4
-
       - uses: actions/setup-node@v4
         with:
           node-version: 22
           cache: pnpm
-
       - name: Instalar dependencias
         run: pnpm install --frozen-lockfile
-
       - name: Verificar tipos
         run: pnpm typecheck
-
       - name: Pruebas del núcleo y del cliente
         run: pnpm test
 
-      # T2: cuando existan migraciones y pruebas pgTAP se agregan aquí
-      # - uses: supabase/setup-cli@v1
-      # - run: pnpm supabase start
-      # - run: pnpm supabase test db
+  base_de_datos:
+    name: Base de datos (migraciones, seed y pgTAP)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - name: Instalar dependencias
+        run: pnpm install --frozen-lockfile
+      # Solo la base: sin Studio, buzón, almacenamiento ni funciones. Aplica migraciones y seed.
+      - name: Levantar Supabase local
+        run: pnpm supabase start -x studio,imgproxy,inbucket,mailpit,edge-runtime,logflare,vector,realtime,storage-api,supavisor,pg_prove
+      - name: Resumen de la carga
+        run: |
+          pnpm supabase db query --help > /dev/null 2>&1 || true
+          docker exec supabase_db_catalogo-ia psql -U postgres -d postgres -c "select dominio, categoria, count(*) from catalogo.producto group by 1,2 order by 1,2" -c "select dominio, version_diccionario from catalogo.vertical"
+      - name: Pruebas pgTAP
+        run: pnpm supabase test db
+      - name: Apagar
+        if: always()
+        run: pnpm supabase stop --no-backup

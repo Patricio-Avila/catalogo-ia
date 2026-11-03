@@ -42,6 +42,98 @@
         }
       }
     },
+    "/verticales": {
+      "get": {
+        "summary": "Verticales disponibles con sus categorías, textos y aviso (selector del cliente)",
+        "responses": {
+          "200": {
+            "description": "verticales",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "verticales": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "dominio": {
+                            "type": "string",
+                            "enum": [
+                              "farmacia",
+                              "llantas",
+                              "belleza"
+                            ]
+                          },
+                          "nombre": {
+                            "type": "string",
+                            "minLength": 1
+                          },
+                          "texto_ayuda": {
+                            "type": "string"
+                          },
+                          "aviso": {
+                            "type": [
+                              "string",
+                              "null"
+                            ]
+                          },
+                          "atributos_destacados": {
+                            "type": "array",
+                            "items": {
+                              "type": "string",
+                              "minLength": 1,
+                              "maxLength": 64,
+                              "pattern": "^[a-z][a-z0-9_]*$"
+                            }
+                          },
+                          "version_diccionario": {
+                            "type": "string"
+                          },
+                          "categorias": {
+                            "type": "array",
+                            "items": {
+                              "type": "object",
+                              "properties": {
+                                "categoria": {
+                                  "type": "string",
+                                  "minLength": 1
+                                },
+                                "nombre": {
+                                  "type": "string",
+                                  "minLength": 1
+                                }
+                              },
+                              "required": [
+                                "categoria",
+                                "nombre"
+                              ]
+                            }
+                          }
+                        },
+                        "required": [
+                          "dominio",
+                          "nombre",
+                          "texto_ayuda",
+                          "aviso",
+                          "atributos_destacados",
+                          "version_diccionario",
+                          "categorias"
+                        ]
+                      }
+                    }
+                  },
+                  "required": [
+                    "verticales"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/diccionario/{dominio}": {
       "get": {
         "summary": "Diccionario de atributos de una vertical (para etiquetas manuales, RF-10)",

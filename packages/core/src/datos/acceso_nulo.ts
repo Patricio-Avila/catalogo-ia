@@ -3,16 +3,22 @@
 // resultados reales.
 
 import { CacheMemoria, type CacheInterpretaciones } from "../cache/clave";
-import type { Diccionario } from "../contrato/diccionario";
+import type { Diccionario, Vertical } from "../contrato/diccionario";
 import type { Dominio, ObjetoFiltros } from "../contrato/filtros";
 import type { Faceta, ResultadoBusqueda } from "../contrato/respuestas";
 import { DICCIONARIOS } from "../datos_prueba/diccionarios";
+import { VERTICALES_PRUEBA } from "../datos_prueba/verticales";
 import type { AccesoDatos } from "./acceso";
 
 export class AccesoNulo implements AccesoDatos {
   readonly cache: CacheInterpretaciones = new CacheMemoria();
   /** Registro de llamadas, para que las pruebas verifiquen qué se consultó. */
-  readonly llamadas: { metodo: "buscar" | "facetas" | "diccionario"; objeto?: ObjetoFiltros }[] = [];
+  readonly llamadas: { metodo: "buscar" | "facetas" | "diccionario" | "verticales"; objeto?: ObjetoFiltros }[] = [];
+
+  async obtenerVerticales(): Promise<Vertical[]> {
+    this.llamadas.push({ metodo: "verticales" });
+    return VERTICALES_PRUEBA;
+  }
 
   async obtenerDiccionario(dominio: Dominio): Promise<Diccionario> {
     this.llamadas.push({ metodo: "diccionario" });
