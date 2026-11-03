@@ -4,7 +4,9 @@
 // service_role. Toda consulta es una llamada a función con parámetros; ningún
 // valor del modelo se concatena al SQL (RNF-03).
 //
-// Contrato con las migraciones de T2 (firmas que la base debe exponer):
+// Contrato con las migraciones de T2 (firmas que la base expone):
+//   catalogo.obtener_verticales() returns jsonb
+//       → [{ dominio, nombre, texto_ayuda, aviso, atributos_destacados, version_diccionario, categorias[] }]
 //   catalogo.obtener_diccionario(p_dominio text) returns jsonb
 //       → { dominio, version, categorias[], entradas[] } con la forma de contrato/diccionario
 //   catalogo.buscar_productos(p_dominio text, p_categoria text, p_filtros jsonb,
@@ -14,21 +16,26 @@
 //       returns table (total bigint, faltantes bigint)
 //   catalogo.calcular_facetas(p_dominio, p_categoria, p_filtros, p_incluir_sin_dato, p_atributos text[])
 //       returns table (atributo text, valor text, productos bigint)
+//   catalogo.comparar_productos(p_dominio, p_categoria, p_atributos_ref jsonb, p_limite, p_candidatos bigint[])
+//       returns table (id, nombre, marca, precio, descripcion, nivel, diferencias jsonb, uso_distinto, riesgo_distinto)
+//       (fase B; todavía sin método aquí)
 //   servicio.cache_obtener(p_clave text) returns jsonb            (SECURITY DEFINER)
 //   servicio.cache_guardar(p_clave text, p_entrada jsonb) returns void (SECURITY DEFINER)
 // El rol del agente tiene EXECUTE en estas funciones y nada más.
 
 import postgres from "postgres";
 import type { CacheInterpretaciones, EntradaCache } from "../cache/clave";
-import { Diccionario } from "../contrato/diccionario";
+import { Diccionario, Vertical } from "../contrato/diccionario";
 import type { Dominio, ObjetoFiltros } from "../contrato/filtros";
 import { Faceta, Resultado, type ResultadoBusqueda } from "../contrato/respuestas";
+import { z } from "zod";
 
 /** Tope duro de filas por respuesta; la función SQL aplica el mismo LEAST (RNF-04). */
 export const LIMITE_MAXIMO = 200;
 export const LIMITE_POR_OMISION = 20;
 
 export interface AccesoDatos {
+  obtenerVerticales(): Promise<Vertical[]>;
   obtenerDiccionario(dominio: Dominio): Promise<Diccionario>;
   buscar(objeto: ObjetoFiltros, limite?: number): Promise<ResultadoBusqueda>;
   facetas(objeto: ObjetoFiltros, atributos?: string[]): Promise<Faceta[]>;
@@ -55,6 +62,12 @@ export class AccesoPostgres implements AccesoDatos {
       connect_timeout: 10,
     });
     this.cache = new CachePostgres(this.sql);
+  }
+
+  async obtenerVerticales(): Promise<Vertical[]> {
+    const [fila] = await this.sql<{ verticales: unknown }[]>`
+      select catalogo.obtener_verticales() as verticales`;
+    return z.array(Vertical).parse(fila?.verticales ?? []);
   }
 
   async obtenerDiccionario(dominio: Dominio): Promise<Diccionario> {

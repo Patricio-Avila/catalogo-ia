@@ -34,6 +34,18 @@ describe("GET /salud", () => {
   });
 });
 
+describe("GET /verticales", () => {
+  it("devuelve las tres verticales con categorías y el aviso de farmacia", async () => {
+    const { app } = montar();
+    const r = await app.request("/verticales");
+    expect(r.status).toBe(200);
+    const { verticales } = await r.json();
+    expect(verticales.map((v: { dominio: string }) => v.dominio)).toEqual(["farmacia", "llantas", "belleza"]);
+    expect(verticales[0].aviso).toMatch(/No recomienda/);
+    expect(verticales[1].categorias).toEqual([{ categoria: "pasajeros", nombre: "Pasajeros" }, { categoria: "carga_ligera", nombre: "Carga ligera" }]);
+  });
+});
+
 describe("GET /diccionario/:dominio", () => {
   it("devuelve el diccionario de la vertical", async () => {
     const { app } = montar();
@@ -256,7 +268,7 @@ describe("GET /openapi.json", () => {
     expect(r.status).toBe(200);
     const doc = await r.json();
     expect(doc.openapi).toBe("3.1.0");
-    expect(Object.keys(doc.paths).sort()).toEqual(["/buscar", "/diccionario/{dominio}", "/facetas", "/salud"]);
+    expect(Object.keys(doc.paths).sort()).toEqual(["/buscar", "/diccionario/{dominio}", "/facetas", "/salud", "/verticales"]);
     expect(doc.paths["/buscar"].post.requestBody.content["application/json"].schema).toBeDefined();
   });
 });

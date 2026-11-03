@@ -4,7 +4,7 @@
 import { z } from "zod";
 import { Accion } from "../acciones";
 import { MOTIVOS_DESCARTE } from "../g1/validar";
-import { Diccionario } from "./diccionario";
+import { Diccionario, Vertical } from "./diccionario";
 import { Dominio, Filtro, FiltroPropuesto, NombreAtributo, ObjetoFiltros } from "./filtros";
 import { Faceta, Resultado } from "./respuestas";
 
@@ -80,6 +80,8 @@ export type PeticionFacetas = z.infer<typeof PeticionFacetas>;
 export const RespuestaFacetas = z.object({ facetas: z.array(Faceta) });
 
 export const RespuestaDiccionario = Diccionario;
+
+export const RespuestaVerticales = z.object({ verticales: z.array(Vertical) });
 
 export const RespuestaSalud = z.object({ estado: z.literal("ok"), nucleo: z.string() });
 

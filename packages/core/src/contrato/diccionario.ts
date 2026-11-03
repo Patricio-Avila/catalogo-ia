@@ -41,6 +41,19 @@ export const Diccionario = z.object({
 });
 export type Diccionario = z.infer<typeof Diccionario>;
 
+/** Configuración de una vertical, tal como la sirve catalogo.obtener_verticales(). */
+export const Vertical = z.object({
+  dominio: Dominio,
+  nombre: z.string().min(1),
+  texto_ayuda: z.string(),
+  /** Texto que el cliente muestra siempre en la vertical (farmacia: solo búsqueda de catálogo). */
+  aviso: z.string().nullable(),
+  atributos_destacados: z.array(NombreAtributo),
+  version_diccionario: z.string(),
+  categorias: z.array(z.object({ categoria: z.string().min(1), nombre: z.string().min(1) })),
+});
+export type Vertical = z.infer<typeof Vertical>;
+
 /**
  * Entradas aplicables a un atributo. Con categoría, la entrada exacta; sin
  * categoría (`null`), todas las categorías de la vertical que lo tienen.

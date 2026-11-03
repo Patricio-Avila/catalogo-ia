@@ -14,6 +14,7 @@ export {
   PeticionFacetas,
   RespuestaFacetas,
   RespuestaDiccionario,
+  RespuestaVerticales,
   RespuestaSalud,
   RespuestaError,
   EtiquetaApi,
@@ -39,7 +40,7 @@ export {
   SalidaModelo,
   OBJETO_VACIO,
 } from "./contrato/filtros";
-export { Diccionario, EntradaDiccionario, entradasDe } from "./contrato/diccionario";
+export { Diccionario, EntradaDiccionario, Vertical, entradasDe } from "./contrato/diccionario";
 export { Resultado, ResultadoBusqueda, Faceta, ValorFaceta } from "./contrato/respuestas";
 
 // G1
@@ -84,3 +85,4 @@ export { quitarAcentos, normalizarValor, normalizarPeticion, aNumero, aBooleano 
 // Datos de prueba (diccionarios y fixtures del modelo)
 export { DICCIONARIOS, DICCIONARIO_FARMACIA, DICCIONARIO_LLANTAS, DICCIONARIO_BELLEZA } from "./datos_prueba/diccionarios";
 export { FIXTURES_MODELO } from "./datos_prueba/fixtures_modelo";
+export { VERTICALES_PRUEBA } from "./datos_prueba/verticales";
