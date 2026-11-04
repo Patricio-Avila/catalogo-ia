@@ -40,6 +40,8 @@ Este archivo es la memoria del proyecto. Las decisiones técnicas viven en `docs
 | 2026-10-24 | S7, tercer avance | Limitaciones y delimitaciones; esquema con Jev, extractor de números y caché; flujo con niveles de confianza; mockups de detalle, aclaración y sin resultados; prototipo de menú; estimación de costos (fuentes no admisibles, rehacer) |
 | 2026-10-31 | S8, cuarto avance | Marco teórico (tabla ancha, EAV, JSONB, diccionario, text-to-SQL, seguridad con LLM); primer prototipo real en PostgreSQL 16: 100,000 productos, diccionario calculado, búsqueda con faltantes en 183 ms (287 ms incluyendo sin dato), rol de solo lectura con `statement_timeout` de 2 s |
 
+| 2026-11-03 | Documento 1, versión revisada, `PI1_BDE_CPAI_v2.docx` (en `PI/`, fuera del repo por contener matrículas) | Responde al comentario del asesor sobre la primera versión ("estructura técnica muy bien elaborada, pero se ve generado por IA y el formato no es APA 7"): formato APA 7 para trabajos de estudiante, primera persona del plural, sección de evolución con las decisiones fechadas, estado de la implementación con cifras medidas, RF-09 a RF-12, registro de cambios. Pendiente pegar las figuras 1 y 2 del original |
+
 Pendiente de confirmar: en Moodle, la tarea "Antecedentes" de BDE aparece cerrada sin entrega; verificar si el documento 1 se entregó por otra vía.
 
 ## 3. Problema y objetivos

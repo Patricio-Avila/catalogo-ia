@@ -178,7 +178,9 @@ Usadas en el documento 1 (verificadas en septiembre de 2026) o en avances poster
 - OWASP GenAI Security Project. (2025b). *LLM06:2025 Excessive agency*. [URL exacta: confirmar en genai.owasp.org]
 - PostgreSQL Global Development Group. (2025). *PostgreSQL 18 documentation: JSON types*. https://www.postgresql.org/docs/18/datatype-json.html
 - Shi, L., Tang, Z., Zhang, N., Zhang, X. y Yang, Z. (2025). A survey on employing large language models for text-to-SQL tasks. *ACM Computing Surveys, 58*(2), Artículo 54. https://doi.org/10.1145/3737873
-- Supabase. (s.f.). *Row Level Security* [documentación]. https://supabase.com/docs/guides/database/postgres/row-level-security
+- Supabase. (s.f.-a). *Row Level Security* [documentación]. Recuperado el 29 de septiembre de 2026, de https://supabase.com/docs/guides/database/postgres/row-level-security
+- Supabase. (s.f.-b). *Edge Functions: Limits* [documentación]. Recuperado el 31 de octubre de 2026, de https://supabase.com/docs/guides/functions/limits
+- GitHub. (s.f.). *GitHub Pages documentation* [documentación]. Recuperado el 31 de octubre de 2026, de https://docs.github.com/en/pages
 
 ## 5. Cola de verificación (candidatas)
 
@@ -212,5 +214,6 @@ Descartadas (no admisibles): AI Superior (blog); eesel AI (blog); publicaciones 
 | Documento 1 (2026-09-29) | Las once de §4 |
 | S8, marco teórico (2026-10-31) | Dinu y Nadkarni (2007); OWASP GenAI Security Project (2025a); PostgreSQL Global Development Group (2025); Shi et al. (2025) |
 | S7, tercer avance (2026-10-24) | AI Superior (2026) y eesel AI (2026): no admisibles, sustituir |
+| Documento 1, versión revisada (2026-11-03) | Las once de §4 más Supabase (s.f.-b) y GitHub (s.f.); formato APA 7 para trabajos de estudiante; registro de cambios al final |
 | Documento 2 | Por asignar |
 | Documento 3 | Por asignar |
