@@ -91,7 +91,9 @@ export class AccesoPostgres implements AccesoDatos {
     ]);
     const c = conteo[0];
     return {
-      resultados: filas.map((f) => Resultado.parse(f)),
+      // postgres.js entrega bigint como texto para no perder precisión; los id del
+      // catálogo caben de sobra en un número de JavaScript.
+      resultados: filas.map((f) => Resultado.parse({ ...f, id: Number(f.id) })),
       total: Number(c?.total ?? 0),
       faltantes: Number(c?.faltantes ?? 0),
     };
