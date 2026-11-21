@@ -1,6 +1,9 @@
 // Fixtures del modelo: lo que un adaptador real debería devolver para textos
-// conocidos. Los números no van aquí: los pone el extractor. Sirven a las
-// pruebas, al arnés de evaluación (T6) y al cliente sin proveedor (T5).
+// conocidos. Los números no van aquí: los pone el extractor.
+//
+// Solo para pruebas unitarias. Contiene a propósito frases del banco de
+// evaluación, así que nunca lo usa el adaptador que se despliega ni el que se
+// evalúa: esos usan FIXTURES_DEMO (fixtures_demo.ts), que no tiene ninguna.
 
 import type { FixturesModelo } from "../modelo/fixtures";
 

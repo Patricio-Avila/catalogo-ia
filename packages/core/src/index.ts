@@ -94,6 +94,7 @@ export { quitarAcentos, normalizarValor, normalizarPeticion, aNumero, aBooleano 
 // Datos de prueba (diccionarios, catálogo sintético y fixtures del modelo)
 export { DICCIONARIOS, DICCIONARIO_FARMACIA, DICCIONARIO_LLANTAS, DICCIONARIO_BELLEZA } from "./datos_prueba/diccionarios";
 export { FIXTURES_MODELO } from "./datos_prueba/fixtures_modelo";
+export { FIXTURES_DEMO } from "./datos_prueba/fixtures_demo";
 export { VERTICALES_PRUEBA } from "./datos_prueba/verticales";
 export { PRODUCTOS_PRUEBA } from "./datos_prueba/productos";
 export type { ProductoCatalogo } from "./datos_prueba/productos";

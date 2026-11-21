@@ -58,12 +58,12 @@ function extraerContenidoMl(quantity?: string, nombre?: string): number | undefi
   const fuente = `${quantity ?? ""} ${nombre ?? ""}`;
   const coincidenciaMl = fuente.match(/(\d+(?:[.,]\d+)?)\s*(ml|mL|ML)\b/);
   if (coincidenciaMl) {
-    const val = Number(coincidenciaMl[1].replace(",", "."));
+    const val = Number((coincidenciaMl[1] ?? "").replace(",", "."));
     if (Number.isFinite(val) && val > 0 && val <= 10000) return Math.round(val);
   }
   const coincidenciaL = fuente.match(/(\d+(?:[.,]\d+)?)\s*(l|L)\b/);
   if (coincidenciaL) {
-    const val = Number(coincidenciaL[1].replace(",", ".")) * 1000;
+    const val = Number((coincidenciaL[1] ?? "").replace(",", ".")) * 1000;
     if (Number.isFinite(val) && val > 0 && val <= 10000) return Math.round(val);
   }
   return undefined;
@@ -174,7 +174,7 @@ async function main() {
     }
 
     const marcaRaw = limpiarTexto(item.brands);
-    const marca = marcaRaw ? marcaRaw.split(",")[0].trim() : null;
+    const marca = marcaRaw ? (marcaRaw.split(",")[0] ?? "").trim() : null;
     const claveNombreMarca = `${nombre.toLowerCase()}|${(marca ?? "").toLowerCase()}`;
     if (nombresMarcaVistos.has(claveNombreMarca)) {
       duplicadosNombreMarca++;

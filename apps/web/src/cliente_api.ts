@@ -8,7 +8,7 @@ import {
   AccesoMemoria,
   AdaptadorInteractivo,
   crearApp,
-  FIXTURES_MODELO,
+  FIXTURES_DEMO,
   PRODUCTOS_PRUEBA,
   type Diccionario,
   type Dominio,
@@ -28,7 +28,7 @@ export interface ClienteCatalogo {
 
 export function crearClienteLocal(): ClienteCatalogo {
   const acceso = new AccesoMemoria();
-  const adaptador = new AdaptadorInteractivo(FIXTURES_MODELO);
+  const adaptador = new AdaptadorInteractivo(FIXTURES_DEMO);
   const app = crearApp({
     acceso,
     adaptador,

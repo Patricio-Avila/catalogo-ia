@@ -18,9 +18,11 @@ describe("Cliente y vista web (T5)", () => {
 
     expect(ctrl.estado.verticales).toHaveLength(3);
     expect(ctrl.estado.dominioActual).toBe("belleza");
-    expect(ctrl.estado.respuesta?.filtros.categoria).toBe("cuidado_facial");
-    expect(ctrl.estado.respuesta?.etiquetas).toHaveLength(3);
-    expect(ctrl.estado.respuesta?.total).toBe(3);
+    // Adaptador interactivo sin fixtures del banco: entiende fragancia y tipo de piel,
+    // no "hidratante" ni la categoría (la evaluación reporta estos huecos).
+    expect(ctrl.estado.respuesta?.filtros.categoria).toBeNull();
+    expect(ctrl.estado.respuesta?.etiquetas.map((e) => e.atributo)).toEqual(["fragancia", "tipo_piel"]);
+    expect(ctrl.estado.respuesta?.total).toBe(6);
     expect(ctrl.estado.respuesta?.faltantes).toBe(2);
     expect(contenedor.innerHTML).toContain("Catálogo · búsqueda asistida");
     expect(contenedor.innerHTML).toContain("Crema facial hidratante 50 ml");
@@ -46,7 +48,7 @@ describe("Cliente y vista web (T5)", () => {
     // Incluir productos sin dato (RF-06)
     await ctrl.ejecutarAccion({ tipo: "incluir_sin_dato", valor: true });
     expect(ctrl.estado.respuesta?.llamo_modelo).toBe(false);
-    expect(ctrl.estado.respuesta?.total).toBe(5);
+    expect(ctrl.estado.respuesta?.total).toBe(8);
     expect(contenedor.innerHTML).toContain("Sin dato:");
 
     // Quitar etiqueta (RF-03)
@@ -78,7 +80,8 @@ describe("Cliente y vista web (T5)", () => {
     expect(contenedor.innerHTML).toContain("data-testid=\"bloque-aclaracion\"");
 
     await ctrl.ejecutarAccion({ tipo: "reiniciar" });
-    await ctrl.buscarPorTexto("crema que no cause daño");
+    // El adaptador propone clase_riesgo por coincidencia léxica; G1 lo descarta (RF-11)
+    await ctrl.buscarPorTexto("crema con clase de riesgo ninguno");
     expect(ctrl.estado.respuesta?.descartados.length).toBeGreaterThan(0);
     expect(contenedor.innerHTML).toContain("data-testid=\"bloque-descartados\"");
   });

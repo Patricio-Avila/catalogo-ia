@@ -8,7 +8,7 @@ import {
   AdaptadorGemini,
   AdaptadorInteractivo,
   crearApp,
-  FIXTURES_MODELO,
+  FIXTURES_DEMO,
   LimiteMemoria,
 } from "./_core.mjs";
 
@@ -33,7 +33,7 @@ const porDia = leerEnteroPositivo(Deno.env.get("LIMITE_MODELO_DIA"), 500);
 const acceso = urlBaseDatos ? new AccesoPostgres({ url: urlBaseDatos, max: 1 }) : new AccesoMemoria();
 const adaptador = claveGemini
   ? new AdaptadorGemini({ apiKey: claveGemini, modelo: modeloGemini })
-  : new AdaptadorInteractivo(FIXTURES_MODELO);
+  : new AdaptadorInteractivo(FIXTURES_DEMO);
 const limiteGasto = new LimiteMemoria({ porMinuto, porDia });
 
 const app = crearApp({

@@ -80,7 +80,7 @@ const ESQUEMA_RESPUESTA_GEMINI = {
 
 export interface OpcionesGemini {
   apiKey: string;
-  modelo?: string;
+  modelo?: string | undefined;
   endpoint?: string;
   timeoutMs?: number;
   maxOutputTokens?: number;
