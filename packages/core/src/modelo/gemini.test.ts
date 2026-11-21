@@ -53,7 +53,7 @@ describe("AdaptadorGemini", () => {
     };
 
     const adaptador = new AdaptadorGemini({
-      apiKey: "AIza_clave_secreta_prueba",
+      apiKey: "clave-de-prueba-no-real",
       fetchImpl: fetchMock,
     });
 
@@ -64,8 +64,8 @@ describe("AdaptadorGemini", () => {
     });
 
     expect(urlLlamada).toBe("https://generativelanguage.googleapis.com/v1/interactions");
-    expect(urlLlamada).not.toContain("AIza_clave_secreta_prueba");
-    expect((initLlamado?.headers as Record<string, string>)["x-goog-api-key"]).toBe("AIza_clave_secreta_prueba");
+    expect(urlLlamada).not.toContain("clave-de-prueba-no-real");
+    expect((initLlamado?.headers as Record<string, string>)["x-goog-api-key"]).toBe("clave-de-prueba-no-real");
 
     const cuerpoEnviado = JSON.parse(String(initLlamado?.body)) as Record<string, unknown>;
     expect(cuerpoEnviado.store).toBe(false);
@@ -81,10 +81,10 @@ describe("AdaptadorGemini", () => {
   it("devuelve aclaración segura ante errores HTTP y nunca filtra la apiKey en los logs", async () => {
     const logs: Array<{ mensaje: string; detalle: Record<string, unknown> }> = [];
     const fetchMock: typeof fetch = async () =>
-      new Response(JSON.stringify({ error: { message: "API key not valid: AIza_secreta" } }), { status: 403 });
+      new Response(JSON.stringify({ error: { message: "API key not valid: clave-ficticia-filtrada" } }), { status: 403 });
 
     const adaptador = new AdaptadorGemini({
-      apiKey: "AIza_secreta",
+      apiKey: "clave-ficticia-filtrada",
       fetchImpl: fetchMock,
       registrar: (mensaje, detalle) => logs.push({ mensaje, detalle }),
     });
@@ -97,7 +97,7 @@ describe("AdaptadorGemini", () => {
 
     expect(res.filtros).toEqual([]);
     expect(res.aclaracion?.pregunta).toContain("No pude interpretar");
-    expect(JSON.stringify(logs)).not.toContain("AIza_secreta");
+    expect(JSON.stringify(logs)).not.toContain("clave-ficticia-filtrada");
     expect(logs[0]?.detalle.status).toBe(403);
   });
 
@@ -112,7 +112,7 @@ describe("AdaptadorGemini", () => {
       );
 
     const adaptadorInvalido = new AdaptadorGemini({
-      apiKey: "AIza_prueba",
+      apiKey: "clave-de-prueba",
       fetchImpl: fetchInvalido,
       registrar,
     });
@@ -135,7 +135,7 @@ describe("AdaptadorGemini", () => {
       });
 
     const adaptadorTimeout = new AdaptadorGemini({
-      apiKey: "AIza_prueba",
+      apiKey: "clave-de-prueba",
       timeoutMs: 15,
       fetchImpl: fetchTimeout,
       registrar,
