@@ -35,6 +35,8 @@ export const LIMITE_MAXIMO = 200;
 export const LIMITE_POR_OMISION = 20;
 
 export interface AccesoDatos {
+  /** Dónde lee: la base real, el catálogo de prueba en memoria o nada (pruebas). Lo reporta GET /salud. */
+  readonly nombre: "postgres" | "memoria" | "nulo";
   obtenerVerticales(): Promise<Vertical[]>;
   obtenerDiccionario(dominio: Dominio): Promise<Diccionario>;
   buscar(objeto: ObjetoFiltros, limite?: number): Promise<ResultadoBusqueda>;
@@ -51,6 +53,7 @@ export interface OpcionesPostgres {
 }
 
 export class AccesoPostgres implements AccesoDatos {
+  readonly nombre = "postgres";
   private readonly sql: postgres.Sql;
   readonly cache: CacheInterpretaciones;
 

@@ -30,7 +30,7 @@ describe("GET /salud", () => {
     const { app } = montar();
     const r = await app.request("/salud");
     expect(r.status).toBe(200);
-    expect(await r.json()).toEqual({ estado: "ok", nucleo: expect.any(String) });
+    expect(await r.json()).toEqual({ estado: "ok", nucleo: expect.any(String), acceso: "nulo", adaptador: "fixtures" });
   });
 });
 

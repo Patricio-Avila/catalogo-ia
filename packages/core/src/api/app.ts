@@ -88,10 +88,10 @@ export function crearApp(deps: DependenciasApi) {
     createRoute({
       method: "get",
       path: "/salud",
-      summary: "Estado de la API y versión del núcleo",
+      summary: "Estado de la API, versión del núcleo, acceso a datos y adaptador del modelo activos",
       responses: { 200: { description: "ok", content: { "application/json": { schema: RespuestaSalud } } } },
     }),
-    (c) => c.json(salud(), 200),
+    (c) => c.json({ ...salud(), acceso: deps.acceso.nombre, adaptador: deps.adaptador.nombre }, 200),
   );
 
   // GET /verticales

@@ -1,10 +1,10 @@
 {
   "imports": {
-    "@hono/zod-openapi": "npm:@hono/zod-openapi@^0.18.0",
-    "hono": "npm:hono@^4.6.0",
-    "hono/cors": "npm:hono@^4.6.0/cors",
-    "hono/http-exception": "npm:hono@^4.6.0/http-exception",
-    "postgres": "npm:postgres@^3.4.5",
-    "zod": "npm:zod@^3.23.8"
+    "@hono/zod-openapi": "npm:@hono/zod-openapi@^1.6.3",
+    "hono": "npm:hono@^4.13.16",
+    "hono/cors": "npm:hono@^4.13.16/cors",
+    "hono/http-exception": "npm:hono@^4.13.16/http-exception",
+    "postgres": "npm:postgres@^4.0.0",
+    "zod": "npm:zod@^4.6.7"
   }
 }

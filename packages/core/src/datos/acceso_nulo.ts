@@ -11,6 +11,7 @@ import { VERTICALES_PRUEBA } from "../datos_prueba/verticales";
 import type { AccesoDatos } from "./acceso";
 
 export class AccesoNulo implements AccesoDatos {
+  readonly nombre = "nulo";
   readonly cache: CacheInterpretaciones = new CacheMemoria();
   /** Registro de llamadas, para que las pruebas verifiquen qué se consultó. */
   readonly llamadas: { metodo: "buscar" | "facetas" | "diccionario" | "verticales"; objeto?: ObjetoFiltros }[] = [];

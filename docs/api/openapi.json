@@ -12,7 +12,7 @@
   "paths": {
     "/salud": {
       "get": {
-        "summary": "Estado de la API y versión del núcleo",
+        "summary": "Estado de la API, versión del núcleo, acceso a datos y adaptador del modelo activos",
         "responses": {
           "200": {
             "description": "ok",
@@ -29,11 +29,24 @@
                     },
                     "nucleo": {
                       "type": "string"
+                    },
+                    "acceso": {
+                      "type": "string",
+                      "enum": [
+                        "postgres",
+                        "memoria",
+                        "nulo"
+                      ]
+                    },
+                    "adaptador": {
+                      "type": "string"
                     }
                   },
                   "required": [
                     "estado",
-                    "nucleo"
+                    "nucleo",
+                    "acceso",
+                    "adaptador"
                   ]
                 }
               }

@@ -235,8 +235,16 @@ export async function iniciarAplicacion(
                   )
                   .join("")}
               </div>
-              <span class="insignia-modo" data-testid="insignia-modo">
-                ${cliente.modo === "remoto" ? "API conectada" : "Catálogo local"}
+              <span
+                class="insignia-modo"
+                data-testid="insignia-modo"
+                title="${
+                  cliente.modo === "remoto"
+                    ? "Consultas a la API publicada"
+                    : "Sin API configurada: catálogo de prueba e intérprete local en el navegador, sin base de datos ni modelo de lenguaje"
+                }"
+              >
+                ${cliente.modo === "remoto" ? "API conectada" : "Modo demo local"}
               </span>
             </div>
           </header>

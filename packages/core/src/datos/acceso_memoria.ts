@@ -21,6 +21,7 @@ interface ProductoEvaluado {
 }
 
 export class AccesoMemoria implements AccesoDatos {
+  readonly nombre = "memoria";
   readonly cache: CacheInterpretaciones = new CacheMemoria();
   private readonly productos: readonly ProductoCatalogo[];
 
