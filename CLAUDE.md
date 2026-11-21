@@ -131,7 +131,7 @@ Del 2026-10-31 (ADR-0005, sustituye la vertical de ferretería del ADR-0004):
 | D-04 | Rúbrica del integrador | Pedirla al asesor. Condiciona extensión y secciones de documentos 2 y 3 |
 | D-05 | Caché semántica con pgvector | Trabajo futuro; solo si sobra tiempo y con verificación por pregunta sí/no |
 
-Cerradas el 2026-10-31 por ADR-0004: D-03 (hosting: GitHub Pages) y D-07 (categorías: tres verticales con dos categorías cada una). Cerrada el 2026-11-01: D-06 (repo `catalogo-ia`, MIT). Cerrada el 2026-11-16 por ADR-0003: D-01 (`AdaptadorInteractivo` activo por omisión sin costo y `AdaptadorGemini` enchufable; Jev diferido). Declarada el 2026-11-16 en el Documento 2: D-08. Fuera de alcance salvo que el equipo lo pida: calificación "útil / no útil" por búsqueda, app instalable, segundo cliente.
+Cerradas el 2026-10-31 por ADR-0004: D-03 (hosting: GitHub Pages) y D-07 (categorías: tres verticales con dos categorías cada una). Cerrada el 2026-11-01: D-06 (repo `catalogo-ia`, MIT). Cerrada el 2026-11-16 por ADR-0003: D-01 (`AdaptadorInteractivo` activo por omisión sin costo y `AdaptadorGemini` enchufable; Jev diferido). El 2026-11-21 se decidió no correr el banco contra Gemini para no generar cargos: `AdaptadorGemini` queda sin evaluar y el adaptador interactivo da 7/30. Declarada el 2026-11-16 en el Documento 2: D-08. Fuera de alcance salvo que el equipo lo pida: calificación "útil / no útil" por búsqueda, app instalable, segundo cliente.
 
 ## 6. Arquitectura y flujo
 

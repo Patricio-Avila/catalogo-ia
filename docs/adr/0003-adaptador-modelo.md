@@ -13,7 +13,7 @@ Durante la implementación de la Fase A se construyó además `AdaptadorInteract
 ## Decisión
 
 1. **Adaptador activo por omisión (costo cero):** Se adopta `AdaptadorInteractivo` (en conjunto con el extractor numérico y la guarda `G1`) como adaptador activo por omisión tanto para el cliente web en modo local (`apps/web/src/cliente_api.ts`) como para la Edge Function cuando no exista la variable `GEMINI_API_KEY` (`supabase/functions/api/index.ts`).
-2. **Adaptador LLM enchufable (`AdaptadorGemini`):** Se mantiene implementado y probado `AdaptadorGemini` (`packages/core/src/modelo/gemini.ts`) con saneamiento de entrada, esquema JSON acotado y tope de gasto por IP/día (`LimiteMemoria`). Su activación es opcional mediante `supabase secrets set GEMINI_API_KEY=...` sin modificar el núcleo, el contrato OpenAPI ni el cliente web.
+2. **Adaptador LLM enchufable (`AdaptadorGemini`):** Se mantiene implementado y probado `AdaptadorGemini` (`packages/core/src/modelo/gemini.ts`) con saneamiento de entrada, esquema JSON acotado y un límite de llamadas por IP, por minuto y por día (`LimiteMemoria`). Ese límite vive en la memoria de cada instancia de la Edge Function, así que no es un tope global de gasto. Si se activa, debe usarse una clave de un proyecto sin facturación habilitada o con presupuesto y corte en Google Cloud. Su activación es opcional mediante `supabase secrets set GEMINI_API_KEY=...` sin modificar el núcleo, el contrato OpenAPI ni el cliente web.
 3. **Diferimiento de Jev:** La integración de un modelo de decisión tipada (Jev) queda fuera de la Fase A y se documenta como trabajo futuro, dado que la restricción de costo cero, la disponibilidad inmediata de visión para la Fase C y las métricas locales satisfacen los requisitos de la entrega.
 4. **Criterio de evaluación:** La evaluación reproducible (`eval/correr.ts`) corre con la caché apagada el banco de 30 consultas (10 por vertical, incluidas 10 con vocabulario ajeno), 5 consultas maliciosas y 3 de contexto de riesgo, y se contrasta con la línea base de filtrado manual (`RF-10`). Se evalúa el mismo adaptador que se despliega: `AdaptadorInteractivo` con `FIXTURES_DEMO`, que no contiene ninguna frase del banco (`fixtures_demo.test.ts` lo verifica).
 
@@ -27,7 +27,7 @@ Durante la implementación de la Fase A se construyó además `AdaptadorInteract
 
 - La aplicación web, la API Hono y el despliegue en GitHub Pages / Supabase Free operan de extremo a extremo con costo operacional cero y sin exigir claves externas de IA.
 - Se mantiene intacto el agnosticismo del núcleo: activar un modelo generativo externo en el futuro equivale a fijar `GEMINI_API_KEY` en secretos sin tocar la base de datos ni el frontend.
-- Las pruebas automatizadas de `packages/core` verifican ambos adaptadores bajo el mismo contrato Zod y las mismas guardas `G1`–`G5`. Las de `AdaptadorGemini` usan transporte simulado: la llamada real al proveedor no está verificada todavía (fase 5 de la revisión del 2026-11-20).
+- Las pruebas automatizadas de `packages/core` verifican ambos adaptadores bajo el mismo contrato Zod y las mismas guardas `G1`–`G5`. Las de `AdaptadorGemini` usan transporte simulado: la llamada real al proveedor no está verificada. El 2026-11-21 se decidió no hacer llamadas reales para no generar cargos.
 
 ## Datos verificados (corregidos el 2026-11-20)
 
@@ -48,6 +48,6 @@ Cifras actuales, `eval/resultados/2026-11-20-interactivo-memoria.json` (`Adaptad
 
 Lectura: la coincidencia léxica sobre el diccionario no entiende sinónimos, la categoría ni la intención ("hidratante", "pastillas", "cutis"), y eso explica la mayor parte de los fallos. Las guardas no dependen del adaptador: con un modelo que obedece al atacante (`eval/modelo_enganado.ts`), G1 y G2 bloquean los 8 casos.
 
-Las latencias en memoria no se reportan como evidencia de `RNF-05`: el recálculo contra PostgreSQL se mide con `pnpm eval -- --acceso=postgres` (ver `docs/mediciones/`).
+Las latencias en memoria no se reportan como evidencia de `RNF-05`: el recálculo contra PostgreSQL se mide con `pnpm eval --acceso=postgres` en CI (ver `docs/mediciones/`).
 
-Pendiente: con `7/30`, la afirmación de que el adaptador interactivo basta para la entrega ya no se sostiene por sí sola. Si se mantiene esta decisión o se activa `AdaptadorGemini` por omisión lo decide el equipo, después de correr el mismo banco con Gemini (`pnpm eval -- --adaptador=gemini`).
+Gemini no se evaluó: el 2026-11-21 se decidió no correr el banco contra la API real para no generar cargos. `AdaptadorGemini` queda enchufable y sin cifras propias; el documento 3 lo declara así. Con `7/30`, la afirmación de que el adaptador interactivo basta para la entrega no se sostiene por sí sola, y el documento 3 debe discutir esa cifra frente a la línea base. Si se mejora el adaptador interactivo, o si se evalúa Gemini con una clave sin facturación (`pnpm eval --adaptador=gemini`), lo decide el equipo.
