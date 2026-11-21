@@ -48,6 +48,33 @@ jobs:
           docker exec supabase_db_catalogo-ia psql -U postgres -d postgres -c "select dominio, categoria, count(*) from catalogo.producto group by 1,2 order by 1,2" -c "select dominio, version_diccionario from catalogo.vertical"
       - name: Pruebas pgTAP
         run: pnpm supabase test db
+      # Contraseña del usuario de la API generada en cada corrida (la de seed.sql es
+      # solo para desarrollo local). Se enmascara en el log y no sale del runner.
+      - name: Conexiones del agente y del administrador
+        run: |
+          CLAVE=$(openssl rand -hex 24)
+          echo "::add-mask::$CLAVE"
+          docker exec supabase_db_catalogo-ia psql -q -U postgres -d postgres -c "alter role agente_api with password '$CLAVE'"
+          URL_ADMIN=$(pnpm -s supabase status -o env | sed -n 's/^DB_URL="\(.*\)"$/\1/p')
+          test -n "$URL_ADMIN"
+          echo "::add-mask::$URL_ADMIN"
+          echo "URL_BASE_ADMIN=$URL_ADMIN" >> "$GITHUB_ENV"
+          echo "URL_BASE_AGENTE=postgresql://agente_api:$CLAVE@127.0.0.1:54322/postgres" >> "$GITHUB_ENV"
+      # Mismo banco que el job del núcleo, ahora con el usuario del agente contra PostgreSQL.
+      - name: Evaluación contra PostgreSQL
+        run: pnpm eval --acceso=postgres
+      # p50 y p95 de las funciones de 0007 frente a los cuerpos de 0005 (RNF-05).
+      - name: Mediciones de las funciones de búsqueda
+        run: pnpm medir
+      - name: Guardar resultados
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: resultados-base-de-datos
+          path: |
+            eval/resultados/*-postgres.json
+            docs/mediciones/resultados/
+          if-no-files-found: warn
       - name: Apagar
         if: always()
         run: pnpm supabase stop --no-backup
