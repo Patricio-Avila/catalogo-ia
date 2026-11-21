@@ -47,28 +47,31 @@ const FILTROS = [
   { atributo: "sin_parabenos", operador: "=", valor: true },
 ];
 
-type Consulta = (sql: postgres.Sql, filtros: string, incluir: boolean) => Promise<unknown>;
+// Los filtros van con sql.json(), como en AccesoPostgres: un texto con ::jsonb se
+// codificaría dos veces y llegaría como escalar.
+type FiltrosJson = ReturnType<postgres.Sql["json"]>;
+type Consulta = (sql: postgres.Sql, filtros: FiltrosJson, incluir: boolean) => Promise<unknown>;
 
 const NUEVAS: Record<string, Consulta> = {
   buscar: (sql, f, inc) =>
-    sql`select id from catalogo.buscar_productos(${DOMINIO}, ${CATEGORIA}, ${f}::jsonb, ${inc}, 20)`,
+    sql`select id from catalogo.buscar_productos(${DOMINIO}, ${CATEGORIA}, ${f}, ${inc}, 20)`,
   contar: (sql, f, inc) =>
-    sql`select total, faltantes from catalogo.contar_productos(${DOMINIO}, ${CATEGORIA}, ${f}::jsonb, ${inc})`,
+    sql`select total, faltantes from catalogo.contar_productos(${DOMINIO}, ${CATEGORIA}, ${f}, ${inc})`,
   facetas: (sql, f, inc) =>
-    sql`select atributo from catalogo.calcular_facetas(${DOMINIO}, ${CATEGORIA}, ${f}::jsonb, ${inc}, null)`,
+    sql`select atributo from catalogo.calcular_facetas(${DOMINIO}, ${CATEGORIA}, ${f}, ${inc}, null)`,
 };
 
 // Cuerpos de 0005: los mismos que la prueba 07_busqueda_equivalencia usa como referencia.
 const REFERENCIA: Record<string, Consulta> = {
   buscar: (sql, f, inc) => sql`
-    select e.id from catalogo.evaluar_filtros(${DOMINIO}, ${CATEGORIA}, ${f}::jsonb, ${!inc}) e
+    select e.id from catalogo.evaluar_filtros(${DOMINIO}, ${CATEGORIA}, ${f}, ${!inc}) e
     where e.valido and (${inc} or e.sin_dato = '{}'::text[])
     order by cardinality(e.sin_dato), e.precio, e.id
     limit 20`,
   contar: (sql, f, inc) => sql`
     select count(*) filter (where ${inc} or e.sin_dato = '{}'::text[]) as total,
            count(*) filter (where e.sin_dato <> '{}'::text[]) as faltantes
-    from catalogo.evaluar_filtros(${DOMINIO}, ${CATEGORIA}, ${f}::jsonb, false) e
+    from catalogo.evaluar_filtros(${DOMINIO}, ${CATEGORIA}, ${f}, false) e
     where e.valido`,
 };
 
@@ -92,7 +95,7 @@ async function medir(
   sql: postgres.Sql, implementacion: Medicion["implementacion"], funcion: string,
   consulta: Consulta, n: number, incluir: boolean,
 ): Promise<Medicion> {
-  const filtros = JSON.stringify(FILTROS.slice(0, n));
+  const filtros = sql.json(FILTROS.slice(0, n));
   const tiempos: number[] = [];
   const errores: string[] = [];
   for (let i = 0; i < CALENTAMIENTO + REPETICIONES; i++) {
