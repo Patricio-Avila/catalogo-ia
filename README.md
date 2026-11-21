@@ -9,7 +9,7 @@ Equipo: Carlos Patricio Avila Izaguirre, Valeria Hernández Hernández, Alejandr
 ## Estructura
 
 ```
-apps/web/          cliente React + Vite + TypeScript + Tailwind
+apps/web/          cliente Vite + TypeScript sin framework (ADR-0006, propuesta)
 packages/core/     validación, extractor numérico, adaptadores de modelo, acceso a datos
 supabase/          migraciones, seed, Edge Function (Hono), pruebas pgTAP
 eval/              banco de consultas, referencia SQL, arnés y resultados
@@ -33,8 +33,10 @@ pnpm supabase db reset       # migraciones y seed desde cero
 pnpm supabase test db        # pruebas pgTAP
 pnpm -r test                 # Vitest en packages/core y apps/web
 pnpm --filter web dev        # cliente en desarrollo
+pnpm eval                    # banco de evaluación en memoria (--acceso=postgres contra la base)
+pnpm medir                   # p50/p95 de las funciones de búsqueda (URL_BASE_AGENTE y URL_BASE_ADMIN en .env)
 ```
 
 ## Licencia
 
-MIT. Ver `LICENSE`.
+MIT. Ver `LICENSE`. Excepción: `eval/resultados/obf-muestra.json` es un extracto de Open Beauty Facts bajo ODbL v1.0; ver `eval/resultados/LICENCIA_OBF.md`.

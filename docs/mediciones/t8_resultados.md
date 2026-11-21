@@ -5,6 +5,11 @@
 **Volumen del catálogo:** `100,020` productos (`16,669` a `16,671` por categoría en 6 categorías; `866,471` pares clave-valor en EAV).  
 **Equivalencia funcional verificada:** En los tres esquemas (`catalogo`, `eav`, `ancha`), `contar_productos('belleza', 'cuidado_facial', '[{"atributo":"tipo_piel","operador":"=","valor":"sensible"},{"atributo":"fragancia","operador":"=","valor":"sin perfume"}]', false)` devuelve exactamente `(total = 420, faltantes = 3090)`.
 
+> **Notas de la revisión del 2026-11-20**
+> 1. **Entorno.** Estas cifras se midieron en el proyecto de Supabase en la nube. ADR-0001 y `CLAUDE.md` §7.3 piden Supabase local con hardware documentado, y aquí no consta el hardware del servidor. Para el documento 2 deben medirse de nuevo en local o declararse como medición en la nube.
+> 2. **Plan de §4.1.** Es el de una consulta directa sobre `catalogo.producto`, ordenada por `precio, id`. No es el plan de `buscar_productos` de 0005, que ordena por `cardinality(sin_dato), precio, id` y arma `cumple[]` y `sin_dato[]` con `GROUP BY`. Sirve como evidencia del uso del índice GIN con `@>`, no como plan de la función.
+> 3. **§3.2.** Medía `buscar_productos` de 0005, que superaba la meta de 1 s (RNF-05) y el `statement_timeout` de 2 s del agente (G4) con 3 a 5 filtros. La migración 0007 cambia ese camino. Las cifras posteriores, medidas en CI con Supabase local (`pnpm medir`), van en §3.3.
+
 ---
 
 ## 1. Comparación de espacio en disco (`pg_total_relation_size`)
@@ -67,6 +72,10 @@ Consultas medidas sobre `belleza / cuidado_facial` (`16,669` productos en la cat
 | **5 filtros** | `1885.30` / `2369.43` | **`1782.64` / `1790.12`** | `2103.77` / `2138.38` |
 
 > **Observación sobre `incluir_sin_dato = true`:** Cuando el usuario activa explícitamente la casilla para incluir productos que carecen del atributo filtrado (`RF-06`), ningún índice de igualdad puede descartar filas por adelantado porque la ausencia de clave (`not (atributos ? k)` o `columna IS NULL`) califica como candidata potencial. En ese régimen, el costo está dominado por el `GROUP BY` de construcción de los arreglos `cumple[]` y `sin_dato[]` sobre los `16,669` productos de la categoría.
+
+### 3.3 Después de la migración 0007 (2026-11-20)
+
+Pendiente: se llena con el artefacto `resultados-base-de-datos` del job de base de datos en CI. `pnpm medir` deja `docs/mediciones/resultados/funciones-<fecha>.json`, con las funciones de 0007 (usuario del agente, `statement_timeout` de 2 s) frente a los cuerpos de 0005 (administrador, sin tope de tiempo). Los casos son los de §3.
 
 ---
 

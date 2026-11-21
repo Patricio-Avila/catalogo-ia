@@ -245,6 +245,8 @@ El DDL completo del prototipo (tabla, índices, generador de cinco categorías, 
 
 Estado al 2026-11-03: los 18 puntos están aplicados en `supabase/migrations/` (seis migraciones) y `supabase/seed.sql`; desde entonces las migraciones son la fuente de verdad del esquema y de las firmas SQL, y este apartado es su justificación. Diferencias respecto a lo escrito arriba: `vertical` y `categoria` viven en la migración 0001 porque `producto` tiene llave foránea a `categoria`; la configuración de las tres verticales y `atributo_meta` se insertan en la migración 0003 (es dato de configuración y debe existir también en la nube, donde el seed no corre); el conteo de total y faltantes es una función aparte, `contar_productos`; la caché se usa por `servicio.cache_obtener` y `servicio.cache_guardar` (SECURITY DEFINER) porque el agente no tiene permisos sobre la tabla; `comparar_productos` acepta `p_candidatos bigint[]` opcional para comparar productos concretos; `obtener_verticales()` sirve la configuración al cliente. El rol que corre las migraciones (`postgres`, sin superusuario en Supabase) recibe membresía con SET en `catalogo_duenio` y `agente_lectura`. La contraseña de `agente_api` la fija `seed.sql` solo en local; en la nube se fija a mano en T9. Primera carga medida en el runner de GitHub: 100,020 productos en 35 s con el trigger activo; 140 pruebas pgTAP en `supabase/tests/database/`.
 
+Al 2026-11-20 (revisión): ocho migraciones. La 0007 agrega `filtrar_productos` y `estado_filtro`, de modo que búsqueda, conteo y facetas ya no arman arreglos sobre toda la categoría; `07_busqueda_equivalencia` las compara contra `evaluar_filtros`, que se conserva como referencia. La 0008 hace que `comparar_productos` falle cerrado cuando a la referencia le falta un atributo de contexto obligatorio: si es de riesgo, nivel 0; si es de uso, nivel máximo 0.5. CI corre el banco contra PostgreSQL y `pnpm medir` con una contraseña de `agente_api` generada en cada corrida.
+
 ### 7.3 Lo que el documento 2 debe producir
 
 Diagrama entidad-relación formal; DDL comentado; generador con su tabla de verdad; diccionario; comparación medida híbrido vs EAV vs tabla ancha en esquemas separados (`eav`, `ancha`) con funciones de la misma firma, midiendo tamaño con `pg_total_relation_size`, p50 y p95 con 1 a 5 filtros, con y sin `incluir_sin_dato`, planes con `EXPLAIN (ANALYZE, BUFFERS)` y estadísticas extendidas en EAV; elección de la clase de operadores GIN; matriz de trazabilidad hallazgo → requisito → módulo → entidad → prueba. Las mediciones se hacen en Supabase local con el hardware documentado (ADR-0001).
@@ -319,7 +321,8 @@ La extensión de G1 y G3 al contexto (RF-11): `inferible = false` en `atributo_m
 - Modo asistido (fase B): 10 escenarios guionados (técnico que pidió un producto que no aparece, dato faltante decisivo, contexto incompatible, petición fuera de alcance, petición en farmacia que roza indicaciones) con intención, contexto, filtros propuestos y alertas esperados.
 - Foto (fase C): 5 imágenes sintéticas por vertical (etiquetas y costados generados) con atributos esperados; se mide la exactitud de extracción antes de G1 y después.
 - Condiciones: caché apagada; versión del modelo fija; hardware documentado; cada adaptador de modelo se corre contra el mismo banco (D-01).
-- Ubicación: `eval/consultas.json`, `eval/comparaciones.json`, `eval/escenarios.json`, `eval/imagenes/`, `eval/referencia/*.sql`, `eval/correr.ts`, `eval/resultados/<fecha>-<adaptador>.json`.
+- Ubicación: `eval/consultas.json` (consultas, `maliciosas` y `contexto_riesgo`), `eval/modelo_enganado.ts` (peor salida posible del modelo para probar las guardas), `eval/comparaciones.json`, `eval/escenarios.json`, `eval/imagenes/`, `eval/referencia/*.sql`, `eval/correr.ts` (`--adaptador=interactivo|gemini`, `--acceso=memoria|postgres`), `eval/resultados/<fecha>-<adaptador>-<acceso>.json`.
+- Ninguna frase del banco tiene respuesta fija en el adaptador desplegado ni en el evaluado: `fixtures_demo.test.ts` lo exige y el reporte lo cuenta.
 
 ## 10. Fuentes
 
@@ -391,8 +394,8 @@ supabase/
   tests/                  pgTAP
 eval/                     consultas, comparaciones, escenarios, imágenes, referencia SQL, arnés, resultados
 docs/
-  adr/                    decisiones aceptadas (0001 base, 0002 middleware, 0003 reservado para el modelo,
-                          0004 cliente y hosting, 0005 comparación, contexto y asistente)
+  adr/                    decisiones (0001 base, 0002 middleware, 0003 modelo, 0004 cliente y hosting,
+                          0005 comparación, contexto y asistente, 0006 cliente sin framework: propuesta)
   marco_teorico.md        fuentes y conceptos
   inversion.md            efectivo, variable por uso y horas
   plan_de_trabajo.md      calendario de seis semanas, frentes y criterios de terminado
