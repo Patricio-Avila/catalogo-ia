@@ -24,7 +24,7 @@ const NOMBRES_ATRIBUTOS: Record<string, string> = {
   uso_previsto: "Uso previsto",
   requiere_receta: "Requiere receta",
   clase_riesgo: "Clase de riesgo",
-  apto_consumo: "Apto consumo",
+  apto_consumo: "Apto para consumo",
   sustancia_activa: "Sustancia activa",
   concentracion_mg: "Concentración (mg)",
   forma_farmaceutica: "Forma farmacéutica",
@@ -80,6 +80,38 @@ export function etiquetaAtributo(atributo: string): string {
 export function formatearValor(valor: ValorFiltro | unknown): string {
   if (typeof valor === "boolean") return valor ? "sí" : "no";
   return String(valor);
+}
+
+// Solo cambia lo que se muestra: el objeto de filtros conserva los operadores del contrato (§6.1).
+const NOMBRES_OPERADORES: Record<Operador, string> = {
+  "=": "es",
+  "<>": "no es",
+  "<": "menos de",
+  "<=": "hasta",
+  ">": "más de",
+  ">=": "desde",
+};
+
+export function nombreOperador(operador: Operador): string {
+  return NOMBRES_OPERADORES[operador];
+}
+
+/** Valor tal como lo lee el usuario: sí/no, precio con signo de pesos, miles separados. */
+export function formatearValorAtributo(atributo: string, valor: ValorFiltro | unknown): string {
+  if (typeof valor === "number") {
+    const numero = valor.toLocaleString("es-MX");
+    return atributo === "precio" ? `$${numero}` : numero;
+  }
+  return formatearValor(valor);
+}
+
+/** Condición de un filtro en palabras, sin el nombre del atributo: "sin perfume", "no es floral", "hasta $300". */
+export function describirCondicion(atributo: string, operador: Operador, valor: ValorFiltro): string {
+  if (typeof valor === "boolean") {
+    return formatearValor(operador === "<>" ? !valor : valor);
+  }
+  const texto = formatearValorAtributo(atributo, valor);
+  return operador === "=" ? texto : `${nombreOperador(operador)} ${texto}`;
 }
 
 interface EstadoVista {
@@ -154,8 +186,7 @@ export async function iniciarAplicacion(
     const primera = obtenerEntradasUnicas(dic)[0];
     if (!primera) return;
     estado.atributoManual = primera.atributo;
-    const ops = OPERADORES_POR_TIPO[primera.tipo];
-    estado.operadorManual = ops[0] ?? "=";
+    estado.operadorManual = operadorPorOmision(primera);
     estado.valorManual = valorPorOmision(primera);
   }
 
@@ -280,7 +311,7 @@ export async function iniciarAplicacion(
             </div>
 
             <section class="fila-etiquetas" aria-label="Filtros encontrados" data-testid="fila-etiquetas">
-              <span class="etiqueta-titulo">Filtros encontrados:</span>
+              <span class="etiqueta-titulo">Filtros aplicados:</span>
               ${
                 filtrosVigentes?.categoria
                   ? `
@@ -311,7 +342,7 @@ export async function iniciarAplicacion(
                     type="button"
                     class="btn-quitar-etiqueta"
                     data-quitar-indice="${idx}"
-                    aria-label="Quitar filtro ${escapar(et.atributo)}"
+                    aria-label="Quitar filtro ${escapar(etiquetaAtributo(et.atributo))}"
                   >×</button>
                 </span>
               `,
@@ -323,7 +354,7 @@ export async function iniciarAplicacion(
                   : ""
               }
               <button type="button" class="btn-accion-secundaria" data-testid="btn-abrir-manual">
-                ${estado.mostrarPanelManual ? "Cerrar filtro manual" : "+ Agregar etiqueta"}
+                ${estado.mostrarPanelManual ? "Cerrar" : "+ Agregar filtro"}
               </button>
               ${
                 filtrosVigentes?.categoria || (resp?.etiquetas.length ?? 0) > 0
@@ -332,7 +363,7 @@ export async function iniciarAplicacion(
               }
             </section>
 
-            ${estado.mostrarPanelManual && entradaManualActual ? renderizarPanelManual(vertical, entradasUnicas, entradaManualActual, estado) : ""}
+            ${estado.mostrarPanelManual && entradaManualActual ? renderizarPanelManual(entradasUnicas, entradaManualActual, estado) : ""}
 
             ${
               resp && resp.descartados.length > 0
@@ -409,7 +440,7 @@ export async function iniciarAplicacion(
 
             <div class="rejilla-contenido">
               <aside class="panel-facetas" aria-label="Facetas" data-testid="panel-facetas">
-                <h2>Facetas</h2>
+                <h2>Filtrar por</h2>
                 ${
                   vertical && vertical.categorias.length > 0
                     ? `
@@ -586,7 +617,7 @@ export async function iniciarAplicacion(
       if (estado.diccionario) {
         const entrada = obtenerEntradasUnicas(estado.diccionario).find((e) => e.atributo === estado.atributoManual);
         if (entrada) {
-          estado.operadorManual = OPERADORES_POR_TIPO[entrada.tipo][0] ?? "=";
+          estado.operadorManual = operadorPorOmision(entrada);
           estado.valorManual = valorPorOmision(entrada);
         }
       }
@@ -699,7 +730,6 @@ export async function iniciarAplicacion(
 }
 
 function renderizarPanelManual(
-  vertical: Vertical | undefined,
   entradas: EntradaDiccionario[],
   actual: EntradaDiccionario,
   estado: EstadoVista,
@@ -736,27 +766,36 @@ function renderizarPanelManual(
     `;
   }
 
+  // La cobertura solo se anuncia cuando no todos los productos tienen el dato (P2).
+  const nombreOpcion = (e: EntradaDiccionario): string =>
+    e.cobertura_pct < 100
+      ? `${etiquetaAtributo(e.atributo)} (dato en ${Math.round(e.cobertura_pct)} % de los productos)`
+      : etiquetaAtributo(e.atributo);
+
   return `
     <div class="panel-manual" data-testid="panel-manual">
-      <strong>Filtro del diccionario (${escapar(vertical?.nombre ?? estado.dominioActual)}):</strong>
-      <select data-testid="select-atributo-manual" aria-label="Atributo del diccionario">
+      <strong>Agregar filtro:</strong>
+      <select data-testid="select-atributo-manual" aria-label="Característica">
         ${entradas
           .map(
             (e) => `
           <option value="${escapar(e.atributo)}" ${e.atributo === actual.atributo ? "selected" : ""}>
-            ${escapar(etiquetaAtributo(e.atributo))} (${e.cobertura_pct}% cobertura)
+            ${escapar(nombreOpcion(e))}
           </option>
         `,
           )
           .join("")}
       </select>
-      <select data-testid="select-operador-manual" aria-label="Operador del filtro">
+      <select data-testid="select-operador-manual" aria-label="Condición">
         ${operadores
-          .map((op) => `<option value="${escapar(op)}" ${op === estado.operadorManual ? "selected" : ""}>${escapar(op)}</option>`)
+          .map(
+            (op) =>
+              `<option value="${escapar(op)}" ${op === estado.operadorManual ? "selected" : ""}>${escapar(nombreOperador(op))}</option>`,
+          )
           .join("")}
       </select>
       ${controlValor}
-      <button type="button" class="btn-agregar-manual" data-testid="btn-aplicar-manual">Aplicar sin modelo</button>
+      <button type="button" class="btn-agregar-manual" data-testid="btn-aplicar-manual">Agregar</button>
     </div>
   `;
 }
@@ -824,22 +863,18 @@ function renderizarPanelDetalle(r: Resultado | undefined, cliente: ClienteCatalo
 
 function describirAtributoCumplido(atributo: string, vigente: ObjetoFiltros | null): string {
   const filtro = vigente?.filtros.find((f) => f.atributo === atributo);
-  if (!filtro) return etiquetaAtributo(atributo).toLowerCase();
-  if (filtro.operador === "=") {
-    if (typeof filtro.valor === "boolean") {
-      return filtro.valor ? etiquetaAtributo(atributo).toLowerCase() : `no ${etiquetaAtributo(atributo).toLowerCase()}`;
-    }
-    return String(filtro.valor);
+  const nombre = etiquetaAtributo(atributo).toLowerCase();
+  if (!filtro) return nombre;
+  if (typeof filtro.valor === "boolean") {
+    const afirmativo = filtro.operador === "<>" ? !filtro.valor : filtro.valor;
+    return afirmativo ? nombre : `no ${nombre}`;
   }
-  return `${etiquetaAtributo(atributo).toLowerCase()} ${filtro.operador} ${String(filtro.valor)}`;
+  if (filtro.operador === "=") return String(filtro.valor);
+  return `${nombre} ${describirCondicion(atributo, filtro.operador, filtro.valor)}`;
 }
 
-function formatearEtiqueta(et: EtiquetaApi): string {
-  const nombre = etiquetaAtributo(et.atributo);
-  if (et.operador === "=") {
-    return `${nombre}: ${formatearValor(et.valor)}`;
-  }
-  return `${nombre} ${et.operador} ${formatearValor(et.valor)}`;
+export function formatearEtiqueta(et: Pick<EtiquetaApi, "atributo" | "operador" | "valor">): string {
+  return `${etiquetaAtributo(et.atributo)}: ${describirCondicion(et.atributo, et.operador, et.valor)}`;
 }
 
 function formatearEtiquetaValorFaceta(valor: string): string {
@@ -863,9 +898,18 @@ function obtenerEntradasUnicas(dic: Diccionario): EntradaDiccionario[] {
   return [...mapa.values()];
 }
 
+// En números lo común es poner un tope ("hasta $300"), no un valor exacto.
+function operadorPorOmision(entrada: EntradaDiccionario): Operador {
+  if (entrada.tipo === "numero") return "<=";
+  return OPERADORES_POR_TIPO[entrada.tipo][0] ?? "=";
+}
+
 function valorPorOmision(entrada: EntradaDiccionario): string {
   if (entrada.tipo === "booleano") return "true";
   if (entrada.tipo === "texto") return entrada.valores?.[0] ?? "";
+  if (entrada.minimo !== undefined && entrada.maximo !== undefined) {
+    return String(Math.round((entrada.minimo + entrada.maximo) / 2));
+  }
   return String(entrada.minimo ?? 100);
 }
 

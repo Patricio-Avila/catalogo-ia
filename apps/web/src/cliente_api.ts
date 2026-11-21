@@ -93,8 +93,10 @@ export function crearClienteHttp(urlBase: string, claveAnon?: string): ClienteCa
       if (!r.ok) throw new Error("Error al ejecutar la búsqueda");
       return (await r.json()) as RespuestaBuscar;
     },
-    obtenerProductoLocal(id: number): ProductoCatalogo | undefined {
-      return PRODUCTOS_PRUEBA.find((p) => p.id === id);
+    // Con la API los ids son de la base, no del catálogo de prueba: buscarlos ahí
+    // mostraría los atributos de otro producto. El detalle usa lo que devolvió /buscar.
+    obtenerProductoLocal(): ProductoCatalogo | undefined {
+      return undefined;
     },
   };
 }

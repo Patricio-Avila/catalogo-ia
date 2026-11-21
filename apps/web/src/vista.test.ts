@@ -1,7 +1,7 @@
 import { vocabularioProhibidoEn } from "@catalogo-ia/core";
 import { describe, expect, it } from "vitest";
-import { crearClienteLocal } from "./cliente_api";
-import { etiquetaAtributo, formatearValor, iniciarAplicacion } from "./vista";
+import { crearClienteHttp, crearClienteLocal } from "./cliente_api";
+import { etiquetaAtributo, formatearEtiqueta, formatearValor, iniciarAplicacion, nombreOperador } from "./vista";
 
 function crearContenedorPrueba(): HTMLElement {
   return {
@@ -99,5 +99,37 @@ describe("Cliente y vista web (T5)", () => {
     }
     expect(etiquetaAtributo("forma_farmaceutica")).toBe("Forma farmacéutica");
     expect(formatearValor(true)).toBe("sí");
+  });
+
+  it("las etiquetas se leen con palabras, sin operadores ni nombres internos", () => {
+    expect(formatearEtiqueta({ atributo: "precio", operador: "<=", valor: 300 })).toBe("Precio: hasta $300");
+    expect(formatearEtiqueta({ atributo: "garantia_km", operador: ">=", valor: 50000 })).toBe(
+      "Garantía (km): desde 50,000",
+    );
+    expect(formatearEtiqueta({ atributo: "tipo_piel", operador: "=", valor: "sensible" })).toBe(
+      "Tipo de piel: sensible",
+    );
+    expect(formatearEtiqueta({ atributo: "fragancia", operador: "<>", valor: "floral" })).toBe(
+      "Fragancia: no es floral",
+    );
+    expect(formatearEtiqueta({ atributo: "run_flat", operador: "<>", valor: true })).toBe("Run flat: no");
+    expect(nombreOperador("<")).toBe("menos de");
+  });
+
+  it("el panel de agregar filtro muestra nombres y condiciones en palabras (RF-10)", async () => {
+    const contenedor = crearContenedorPrueba();
+    const ctrl = await iniciarAplicacion(contenedor, crearClienteLocal());
+    ctrl.estado.mostrarPanelManual = true;
+    await ctrl.ejecutarAccion({ tipo: "agregar", filtro: { atributo: "precio", operador: "<", valor: 300 } });
+
+    expect(contenedor.innerHTML).toContain("Agregar filtro:");
+    expect(contenedor.innerHTML).toContain("Precio: menos de $300");
+    expect(contenedor.innerHTML).toContain(">menos de</option>");
+    // Texto visible (sin etiquetas ni atributos HTML): ningún nombre interno con guion bajo.
+    expect(contenedor.innerHTML.replace(/<[^>]*>/g, "")).not.toContain("_");
+  });
+
+  it("con la API publicada el detalle no toma atributos del catálogo de prueba", () => {
+    expect(crearClienteHttp("https://ejemplo.invalid/api").obtenerProductoLocal(1)).toBeUndefined();
   });
 });

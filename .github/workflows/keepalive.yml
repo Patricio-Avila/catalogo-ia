@@ -8,10 +8,12 @@ on:
 
 jobs:
   ping:
-    name: Ping de salud a la Edge Function
+    name: Consulta a la base por la Edge Function
     runs-on: ubuntu-latest
     steps:
-      - name: Consultar /salud si la URL está configurada
+      # /salud no toca la base; /verticales sí (obtener_verticales), y eso es lo que
+      # cuenta como actividad del proyecto.
+      - name: Consultar /verticales si la URL está configurada
         env:
           VITE_API_URL: ${{ vars.VITE_API_URL }}
           VITE_SUPABASE_ANON_KEY: ${{ vars.VITE_SUPABASE_ANON_KEY }}
@@ -20,8 +22,9 @@ jobs:
             echo "VITE_API_URL no configurada; se omite el ping hasta completar el despliegue T9."
             exit 0
           fi
-          curl --fail --silent --show-error \
-            -H "apikey: $VITE_SUPABASE_ANON_KEY" \
-            -H "Authorization: Bearer $VITE_SUPABASE_ANON_KEY" \
-            "$VITE_API_URL/salud"
-          echo ""
+          cabeceras=()
+          if [ -n "$VITE_SUPABASE_ANON_KEY" ]; then
+            cabeceras=(-H "apikey: $VITE_SUPABASE_ANON_KEY" -H "Authorization: Bearer $VITE_SUPABASE_ANON_KEY")
+          fi
+          curl --fail --silent --show-error --output /dev/null --write-out "HTTP %{http_code}\n" \
+            "${cabeceras[@]}" "$VITE_API_URL/verticales"
