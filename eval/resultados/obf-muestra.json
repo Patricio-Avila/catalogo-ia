@@ -1,0 +1,208 @@
+{
+  "fecha_extraccion": "2026-11-14T21:45:04.460Z",
+  "fuente": "Open Beauty Facts API v2 (https://world.openbeautyfacts.org/api/v2/search)",
+  "licencia_fuente": "Open Database License (ODbL) v1.0",
+  "resumen_extraccion": {
+    "registros_crudos": 300,
+    "descartados_sin_codigo": 0,
+    "descartados_sin_nombre": 89,
+    "duplicados_por_codigo": 0,
+    "duplicados_por_nombre_marca": 3,
+    "registros_validos_estandarizados": 208,
+    "tasa_retencion_pct": 69.33,
+    "productos_con_marca": 202,
+    "cobertura_marca_pct": 97.12,
+    "promedio_atributos_extraidos": 0.96
+  },
+  "cobertura_por_atributo": {
+    "contenido_ml": {
+      "presentes": 56,
+      "nulos": 152,
+      "cobertura_pct": 26.92
+    },
+    "vegano": {
+      "presentes": 13,
+      "nulos": 195,
+      "cobertura_pct": 6.25
+    },
+    "sin_parabenos": {
+      "presentes": 4,
+      "nulos": 204,
+      "cobertura_pct": 1.92
+    },
+    "fragancia": {
+      "presentes": 116,
+      "nulos": 92,
+      "cobertura_pct": 55.77
+    },
+    "tipo_piel": {
+      "presentes": 8,
+      "nulos": 200,
+      "cobertura_pct": 3.85
+    },
+    "spf": {
+      "presentes": 2,
+      "nulos": 206,
+      "cobertura_pct": 0.96
+    }
+  },
+  "muestra_ejemplos": [
+    {
+      "codigo": "3600542370110",
+      "nombre": "Ultra doux",
+      "marca": "Garnier",
+      "categoria": "cuidado_corporal",
+      "atributos": {
+        "contenido_ml": 390
+      },
+      "campos_faltantes": [
+        "vegano",
+        "sin_parabenos",
+        "fragancia",
+        "tipo_piel",
+        "spf"
+      ]
+    },
+    {
+      "codigo": "7509546063645",
+      "nombre": "speed stick x5",
+      "marca": "speed stick",
+      "categoria": "cuidado_corporal",
+      "atributos": {
+        "contenido_ml": 150
+      },
+      "campos_faltantes": [
+        "vegano",
+        "sin_parabenos",
+        "fragancia",
+        "tipo_piel",
+        "spf"
+      ]
+    },
+    {
+      "codigo": "50096381",
+      "nombre": "Go Fresh Moisturising Cream",
+      "marca": "Dove",
+      "categoria": "cuidado_corporal",
+      "atributos": {
+        "contenido_ml": 50,
+        "fragancia": "con fragancia"
+      },
+      "campos_faltantes": [
+        "vegano",
+        "sin_parabenos",
+        "tipo_piel",
+        "spf"
+      ]
+    },
+    {
+      "codigo": "0057800947820",
+      "nombre": "Clear Action Blackhead Facial Scrub",
+      "marca": "Life Brand",
+      "categoria": "cuidado_facial",
+      "atributos": {
+        "fragancia": "con fragancia"
+      },
+      "campos_faltantes": [
+        "contenido_ml",
+        "vegano",
+        "sin_parabenos",
+        "tipo_piel",
+        "spf"
+      ]
+    },
+    {
+      "codigo": "8721497057422",
+      "nombre": "Coral Farbschutz Colorwaschmittel",
+      "marca": "Unilever",
+      "categoria": "cuidado_corporal",
+      "atributos": {
+        "contenido_ml": 1125
+      },
+      "campos_faltantes": [
+        "vegano",
+        "sin_parabenos",
+        "fragancia",
+        "tipo_piel",
+        "spf"
+      ]
+    },
+    {
+      "codigo": "6932511217926",
+      "nombre": "Coconut Oil",
+      "marca": "Disaar",
+      "categoria": "cuidado_corporal",
+      "atributos": {},
+      "campos_faltantes": [
+        "contenido_ml",
+        "vegano",
+        "sin_parabenos",
+        "fragancia",
+        "tipo_piel",
+        "spf"
+      ]
+    },
+    {
+      "codigo": "0852474358510",
+      "nombre": "Coconut Shea Butter Moisturizing Body Wash",
+      "marca": "EVE ST. CLAIRE",
+      "categoria": "cuidado_corporal",
+      "atributos": {
+        "fragancia": "con fragancia"
+      },
+      "campos_faltantes": [
+        "contenido_ml",
+        "vegano",
+        "sin_parabenos",
+        "tipo_piel",
+        "spf"
+      ]
+    },
+    {
+      "codigo": "8904430202039",
+      "nombre": "Hibiscus & Ceramides Smoothing Hair Serum",
+      "marca": "Plum",
+      "categoria": "cuidado_facial",
+      "atributos": {
+        "fragancia": "con fragancia"
+      },
+      "campos_faltantes": [
+        "contenido_ml",
+        "vegano",
+        "sin_parabenos",
+        "tipo_piel",
+        "spf"
+      ]
+    },
+    {
+      "codigo": "75000950",
+      "nombre": "Nivea",
+      "marca": null,
+      "categoria": "cuidado_corporal",
+      "atributos": {},
+      "campos_faltantes": [
+        "contenido_ml",
+        "vegano",
+        "sin_parabenos",
+        "fragancia",
+        "tipo_piel",
+        "spf"
+      ]
+    },
+    {
+      "codigo": "4061459752601",
+      "nombre": "Lacura Rasierklingen 4 Klingen",
+      "marca": "Lacura",
+      "categoria": "cuidado_corporal",
+      "atributos": {},
+      "campos_faltantes": [
+        "contenido_ml",
+        "vegano",
+        "sin_parabenos",
+        "fragancia",
+        "tipo_piel",
+        "spf"
+      ]
+    }
+  ]
+}

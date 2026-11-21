@@ -1,0 +1,10 @@
+{
+  "name": "Catálogo IA — Búsqueda Asistida",
+  "short_name": "Catálogo IA",
+  "description": "Filtrado asistido por IA sobre catálogos con atributos heterogéneos e incompletos.",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#f8fafc",
+  "theme_color": "#1d4ed8",
+  "lang": "es-MX"
+}

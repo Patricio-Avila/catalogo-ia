@@ -77,13 +77,20 @@ export const PeticionFacetas = z.object({
 });
 export type PeticionFacetas = z.infer<typeof PeticionFacetas>;
 
-export const RespuestaFacetas = z.object({ facetas: z.array(Faceta) });
+/** `descartados`: filtros del objeto recibido que no pasaron G1 (RF-02); no se usaron. */
+export const RespuestaFacetas = z.object({ facetas: z.array(Faceta), descartados: z.array(DescartadoApi) });
 
 export const RespuestaDiccionario = Diccionario;
 
 export const RespuestaVerticales = z.object({ verticales: z.array(Vertical) });
 
-export const RespuestaSalud = z.object({ estado: z.literal("ok"), nucleo: z.string() });
+/** `acceso` y `adaptador` dicen con qué corre la API: memoria es el catálogo de prueba, no la base. */
+export const RespuestaSalud = z.object({
+  estado: z.literal("ok"),
+  nucleo: z.string(),
+  acceso: z.enum(["postgres", "memoria", "nulo"]),
+  adaptador: z.string(),
+});
 
 /** Errores al cliente siempre genéricos; el detalle va al log de la función. */
 export const RespuestaError = z.object({

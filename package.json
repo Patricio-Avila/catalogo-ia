@@ -5,6 +5,11 @@
   "description": "Filtrado asistido por IA sobre catálogos con atributos heterogéneos",
   "license": "MIT",
   "scripts": {
+    "dev": "pnpm --filter web dev",
+    "build": "pnpm --filter web build",
+    "build:edge": "pnpm --filter web exec vite build -c vite.edge.config.ts",
+    "eval": "pnpm --filter @catalogo-ia/core exec tsx ../../eval/correr.ts",
+    "medir": "pnpm --filter @catalogo-ia/core exec tsx scripts/medir_funciones.ts",
     "test": "pnpm -r test",
     "typecheck": "pnpm -r typecheck",
     "supabase": "supabase"

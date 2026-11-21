@@ -14,6 +14,7 @@ coverage/
 supabase/.temp/
 supabase/.branches/
 supabase/.env
+supabase/functions/api/_core.mjs
 
 # Sistema y editores
 .DS_Store
