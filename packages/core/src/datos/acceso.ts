@@ -55,11 +55,13 @@ export class AccesoPostgres implements AccesoDatos {
   readonly cache: CacheInterpretaciones;
 
   constructor(opciones: OpcionesPostgres) {
+    const esLocal = opciones.url.includes("localhost") || opciones.url.includes("127.0.0.1");
     this.sql = postgres(opciones.url, {
       prepare: false, // pooler en modo transacción (ADR-0002)
       max: opciones.max ?? 1,
       idle_timeout: 20,
       connect_timeout: 10,
+      ...(esLocal ? {} : { ssl: "require" as const }),
     });
     this.cache = new CachePostgres(this.sql);
   }

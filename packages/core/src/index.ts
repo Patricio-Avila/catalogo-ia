@@ -62,6 +62,14 @@ export { extraerNumeros } from "./extractor/numerico";
 export type { AdaptadorModelo, PeticionModelo, RespuestaModelo, AclaracionPropuesta } from "./modelo/interfaz";
 export { AdaptadorFixtures } from "./modelo/fixtures";
 export type { FixturesModelo } from "./modelo/fixtures";
+export { AdaptadorInteractivo } from "./modelo/heuristico";
+export {
+  AdaptadorGemini,
+  MODELO_GEMINI_POR_OMISION,
+  URL_GEMINI_INTERACTIONS,
+  sanearEntradaUsuario,
+} from "./modelo/gemini";
+export type { OpcionesGemini } from "./modelo/gemini";
 
 // Interpretación y acciones
 export { interpretarPeticion, nivelDe, UMBRALES } from "./interpretar";
@@ -77,12 +85,15 @@ export type { CacheInterpretaciones, EntradaCache, DatosClave } from "./cache/cl
 export { AccesoPostgres, LIMITE_MAXIMO, LIMITE_POR_OMISION } from "./datos/acceso";
 export type { AccesoDatos, OpcionesPostgres } from "./datos/acceso";
 export { AccesoNulo } from "./datos/acceso_nulo";
+export { AccesoMemoria } from "./datos/acceso_memoria";
 
 // Vocabulario prohibido y utilidades de texto
 export { VOCABULARIO_PROHIBIDO, vocabularioProhibidoEn } from "./vocabulario";
 export { quitarAcentos, normalizarValor, normalizarPeticion, aNumero, aBooleano } from "./texto";
 
-// Datos de prueba (diccionarios y fixtures del modelo)
+// Datos de prueba (diccionarios, catálogo sintético y fixtures del modelo)
 export { DICCIONARIOS, DICCIONARIO_FARMACIA, DICCIONARIO_LLANTAS, DICCIONARIO_BELLEZA } from "./datos_prueba/diccionarios";
 export { FIXTURES_MODELO } from "./datos_prueba/fixtures_modelo";
 export { VERTICALES_PRUEBA } from "./datos_prueba/verticales";
+export { PRODUCTOS_PRUEBA } from "./datos_prueba/productos";
+export type { ProductoCatalogo } from "./datos_prueba/productos";
