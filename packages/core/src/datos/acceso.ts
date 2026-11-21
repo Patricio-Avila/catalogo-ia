@@ -52,20 +52,34 @@ export interface OpcionesPostgres {
   max?: number;
 }
 
+/**
+ * Opciones del driver. Medido el 2026-11-21 contra el pooler de Supabase en modo
+ * transacción: con dos o más consultas encadenadas en la misma conexión (lo que
+ * postgres.js hace por omisión, hasta 100), el pooler no devolvía las siguientes y
+ * la conexión quedaba colgada; las rutas de una sola consulta respondían bien.
+ * `max_pipeline: 1` deja una consulta en vuelo por conexión, y `queue_timeout`
+ * corta la espera en lugar de agotar el tiempo de la Edge Function.
+ */
+export function opcionesConexion(opciones: OpcionesPostgres): postgres.Options<Record<string, never>> {
+  const esLocal = opciones.url.includes("localhost") || opciones.url.includes("127.0.0.1");
+  return {
+    prepare: false, // pooler en modo transacción (ADR-0002)
+    max: opciones.max ?? 1,
+    max_pipeline: 1,
+    queue_timeout: 10,
+    idle_timeout: 20,
+    connect_timeout: 10,
+    ...(esLocal ? {} : { ssl: "require" as const }),
+  };
+}
+
 export class AccesoPostgres implements AccesoDatos {
   readonly nombre = "postgres";
   private readonly sql: postgres.Sql;
   readonly cache: CacheInterpretaciones;
 
   constructor(opciones: OpcionesPostgres) {
-    const esLocal = opciones.url.includes("localhost") || opciones.url.includes("127.0.0.1");
-    this.sql = postgres(opciones.url, {
-      prepare: false, // pooler en modo transacción (ADR-0002)
-      max: opciones.max ?? 1,
-      idle_timeout: 20,
-      connect_timeout: 10,
-      ...(esLocal ? {} : { ssl: "require" as const }),
-    });
+    this.sql = postgres(opciones.url, opcionesConexion(opciones));
     this.cache = new CachePostgres(this.sql);
   }
 

@@ -1,0 +1,17 @@
+import { describe, expect, it } from "vitest";
+import { opcionesConexion } from "./acceso";
+
+describe("Opciones del driver para el pooler (ADR-0002)", () => {
+  it("una consulta en vuelo por conexión, sin sentencias preparadas y con espera acotada", () => {
+    const op = opcionesConexion({ url: "postgresql://agente_api.ref@pooler.ejemplo.invalid:6543/postgres" });
+    expect(op.max_pipeline).toBe(1);
+    expect(op.prepare).toBe(false);
+    expect(op.max).toBe(1);
+    expect(op.queue_timeout).toBeGreaterThan(0);
+    expect(op.ssl).toBe("require");
+  });
+
+  it("en local no exige SSL", () => {
+    expect(opcionesConexion({ url: "postgresql://agente_api@127.0.0.1:54322/postgres" }).ssl).toBeUndefined();
+  });
+});
