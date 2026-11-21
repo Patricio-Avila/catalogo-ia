@@ -22,18 +22,15 @@ export class AdaptadorInteractivo implements AdaptadorModelo {
   readonly nombre = "interactivo";
   private readonly base: AdaptadorFixtures;
 
-  constructor(fixtures: FixturesModelo) {
+  constructor(fixtures: FixturesModelo = {}) {
     this.base = new AdaptadorFixtures(fixtures);
   }
 
   async interpretar(peticion: PeticionModelo): Promise<RespuestaModelo> {
-    const previosSinFixture = this.base.sinFixture.length;
-    const deFixture = await this.base.interpretar(peticion);
-    if (this.base.sinFixture.length === previosSinFixture) {
-      return deFixture;
-    }
-
-    return inferirDesdeDiccionario(peticion.texto, peticion.diccionario);
+    return (
+      this.base.buscar(peticion.diccionario.dominio, peticion.texto) ??
+      inferirDesdeDiccionario(peticion.texto, peticion.diccionario)
+    );
   }
 }
 

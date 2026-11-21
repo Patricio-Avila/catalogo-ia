@@ -16,9 +16,13 @@ describe("AdaptadorFixtures", () => {
     expect(r.filtros).toEqual([]);
   });
 
-  it("registra los textos sin fixture", async () => {
+  it("buscar() distingue un texto sin fixture sin guardar estado por petición", async () => {
     const b = new AdaptadorFixtures(FIXTURES_MODELO);
-    await b.interpretar({ texto: "algo rarísimo", diccionario: DICCIONARIO_BELLEZA, filtrosVigentes: null });
-    expect(b.sinFixture).toEqual(["belleza|algo rarisimo"]);
+    expect(b.buscar("belleza", "algo rarísimo")).toBeUndefined();
+    expect(b.buscar("farmacia", "PARACETAMOL en tabletas")?.categoria).toBe("medicamentos");
+    for (let i = 0; i < 1000; i++) {
+      await b.interpretar({ texto: `frase desconocida ${i}`, diccionario: DICCIONARIO_BELLEZA, filtrosVigentes: null });
+    }
+    expect(Object.keys(b).filter((k) => k !== "nombre" && k !== "tabla")).toEqual([]);
   });
 });
