@@ -256,8 +256,66 @@ describe("POST /facetas", () => {
     const { app, acceso } = montar();
     const r = await post(app, "/facetas", { filtros: { dominio: "belleza", categoria: null, filtros: [], incluir_sin_dato: false }, atributos: ["fragancia"] });
     expect(r.status).toBe(200);
-    expect(await r.json()).toEqual({ facetas: [] });
-    expect(acceso.llamadas.map((l) => l.metodo)).toEqual(["facetas"]);
+    expect(await r.json()).toEqual({ facetas: [], descartados: [] });
+    expect(acceso.llamadas.map((l) => l.metodo)).toEqual(["diccionario", "facetas"]);
+  });
+
+  it("G1 sobre el objeto recibido: lo que no está en el diccionario no llega a la base", async () => {
+    const { app, acceso } = montar();
+    const filtros = {
+      dominio: "belleza",
+      categoria: "cuidado_corporal",
+      filtros: [
+        { atributo: "vegano", operador: "=", valor: true },
+        { atributo: "margen", operador: ">", valor: 0 },
+        { atributo: "spf", operador: ">=", valor: 30 },
+      ],
+      incluir_sin_dato: false,
+    };
+    const cuerpo = await (await post(app, "/facetas", { filtros })).json();
+    expect(cuerpo.descartados.map((d: { atributo: string; motivo: string }) => [d.atributo, d.motivo])).toEqual([
+      ["margen", "atributo_desconocido"],
+      ["spf", "atributo_desconocido"],
+    ]);
+    expect(acceso.llamadas.at(-1)?.objeto?.filtros).toEqual([{ atributo: "vegano", operador: "=", valor: true }]);
+  });
+});
+
+describe("POST /buscar: G1 sobre los filtros vigentes del cliente", () => {
+  const alterado = {
+    dominio: "belleza",
+    categoria: null,
+    filtros: [
+      { atributo: "fragancia", operador: "=", valor: "sin perfume" },
+      { atributo: "costo", operador: "<", valor: 10 },
+      { atributo: "tipo_piel", operador: "=", valor: "'; drop table producto; --" },
+    ],
+    incluir_sin_dato: false,
+  };
+
+  it.each([
+    ["texto", { texto: "que no tenga parabenos" }],
+    ["acción", { accion: { tipo: "incluir_sin_dato", valor: true } }],
+  ])("con %s: descarta e informa lo que no está en el diccionario", async (_, entrada) => {
+    const { app, acceso } = montar();
+    const cuerpo = await (await post(app, "/buscar", { dominio: "belleza", filtros_vigentes: alterado, ...entrada })).json();
+    expect(cuerpo.descartados.map((d: { atributo: string; motivo: string }) => [d.atributo, d.motivo])).toEqual(
+      expect.arrayContaining([
+        ["costo", "atributo_desconocido"],
+        ["tipo_piel", "valor_fuera_de_dominio"],
+      ]),
+    );
+    const buscado = acceso.llamadas.find((l) => l.metodo === "buscar")?.objeto;
+    expect(buscado?.filtros.map((f) => f.atributo)).not.toContain("costo");
+    expect(buscado?.filtros.map((f) => f.atributo)).not.toContain("tipo_piel");
+    expect(buscado?.filtros).toContainEqual({ atributo: "fragancia", operador: "=", valor: "sin perfume" });
+  });
+
+  it("al reiniciar no informa descartes del estado anterior", async () => {
+    const { app } = montar();
+    const cuerpo = await (await post(app, "/buscar", { dominio: "belleza", accion: { tipo: "reiniciar" }, filtros_vigentes: alterado })).json();
+    expect(cuerpo.descartados).toEqual([]);
+    expect(cuerpo.filtros.filtros).toEqual([]);
   });
 });
 

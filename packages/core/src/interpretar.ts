@@ -123,8 +123,18 @@ export async function interpretarPeticion(p: ParametrosInterpretar): Promise<Int
 
   // fusión con lo vigente (RF-04)
   const base: Filtro[] = reiniciar ? [] : vigente.filtros;
-  let filtros: Filtro[] = base;
-  for (const f of aplicables) filtros = reemplazar(filtros, { atributo: f.atributo, operador: f.operador, valor: f.valor });
+  let fusionados: Filtro[] = base;
+  for (const f of aplicables) fusionados = reemplazar(fusionados, { atributo: f.atributo, operador: f.operador, valor: f.valor });
+
+  // Si el modelo cambió la categoría, un filtro vigente puede no existir en la
+  // nueva: se descarta y se informa en lugar de dejarlo vaciar los resultados.
+  const enCategoria = validarObjetoFiltros(
+    { categoria: validado.objeto.categoria, filtros: fusionados },
+    diccionario,
+    "usuario",
+  );
+  const filtros: Filtro[] = enCategoria.objeto.filtros.map(({ atributo, operador, valor }) => ({ atributo, operador, valor }));
+  const descartados = [...validado.descartados, ...enCategoria.descartados];
 
   const objeto: ObjetoFiltros = {
     dominio: diccionario.dominio,
@@ -149,7 +159,7 @@ export async function interpretarPeticion(p: ParametrosInterpretar): Promise<Int
   return {
     objeto,
     etiquetas: etiquetasDe(objeto.filtros, nuevas),
-    descartados: validado.descartados,
+    descartados,
     aclaracion,
     desde_cache: origen === "cache",
     llamo_modelo: llamoModelo,

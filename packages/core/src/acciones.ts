@@ -60,6 +60,18 @@ export function aplicarAccion(
   }
 }
 
+/**
+ * G1 sobre el estado que manda el cliente (RF-02). Los filtros vigentes viven en el
+ * cliente y pueden llegar alterados, así que se revalidan con origen "usuario"
+ * antes de usarlos: lo que no está en el diccionario se descarta y se informa.
+ */
+export function sanearVigente(
+  vigente: ObjetoFiltros | null,
+  diccionario: Diccionario,
+): { objeto: ObjetoFiltros | null; descartados: Descartado[] } {
+  return vigente ? revalidar(vigente, diccionario) : { objeto: null, descartados: [] };
+}
+
 /** Un filtro nuevo con el mismo atributo y operador reemplaza al vigente (RF-04). */
 export function reemplazar<F extends Filtro>(vigentes: F[], nuevo: F): F[] {
   const resto = vigentes.filter((f) => !(f.atributo === nuevo.atributo && f.operador === nuevo.operador));

@@ -1234,10 +1234,49 @@
                           "valores"
                         ]
                       }
+                    },
+                    "descartados": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "atributo": {
+                            "type": "string"
+                          },
+                          "operador": {
+                            "type": "string"
+                          },
+                          "valor": {},
+                          "motivo": {
+                            "type": "string",
+                            "enum": [
+                              "dominio_no_coincide",
+                              "categoria_no_pertenece",
+                              "atributo_desconocido",
+                              "atributo_no_inferible",
+                              "operador_desconocido",
+                              "operador_incompatible",
+                              "valor_no_convertible",
+                              "valor_fuera_de_dominio",
+                              "valor_fuera_de_rango",
+                              "duplicado"
+                            ]
+                          },
+                          "detalle": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "atributo",
+                          "motivo",
+                          "detalle"
+                        ]
+                      }
                     }
                   },
                   "required": [
-                    "facetas"
+                    "facetas",
+                    "descartados"
                   ]
                 }
               }

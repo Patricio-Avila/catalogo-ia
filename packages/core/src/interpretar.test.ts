@@ -130,6 +130,21 @@ describe("interpretar: fusión con vigentes (RF-04)", () => {
     expect(r.aclaracion).toBeNull();
   });
 
+  it("si el modelo cambia la categoría, el filtro vigente que no existe en ella se descarta e informa", async () => {
+    const conSpf: ObjetoFiltros = { ...vigente, filtros: [...vigente.filtros, { atributo: "spf", operador: ">=", valor: 30 }] };
+    const aCorporal = new AdaptadorFixtures({
+      belleza: { "ahora para el cuerpo": { categoria: "cuidado_corporal", filtros: [{ atributo: "vegano", operador: "=", valor: true, confianza: 0.9 }] } },
+    });
+    const r = await interpretarPeticion({ texto: "ahora para el cuerpo", diccionario: belleza, filtrosVigentes: conSpf, adaptador: aCorporal });
+    expect(r.objeto.categoria).toBe("cuidado_corporal");
+    expect(soloFiltros(r.objeto)).toEqual([
+      { atributo: "fragancia", operador: "=", valor: "sin perfume" },
+      { atributo: "precio", operador: "<", valor: 300 },
+      { atributo: "vegano", operador: "=", valor: true },
+    ]);
+    expect(r.descartados).toEqual([expect.objectContaining({ atributo: "spf", motivo: "atributo_desconocido" })]);
+  });
+
   it("secuencia de tres mensajes", async () => {
     const a = adaptador();
     let obj: ObjetoFiltros | null = null;

@@ -77,7 +77,8 @@ export const PeticionFacetas = z.object({
 });
 export type PeticionFacetas = z.infer<typeof PeticionFacetas>;
 
-export const RespuestaFacetas = z.object({ facetas: z.array(Faceta) });
+/** `descartados`: filtros del objeto recibido que no pasaron G1 (RF-02); no se usaron. */
+export const RespuestaFacetas = z.object({ facetas: z.array(Faceta), descartados: z.array(DescartadoApi) });
 
 export const RespuestaDiccionario = Diccionario;
 

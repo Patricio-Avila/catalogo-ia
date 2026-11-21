@@ -7,7 +7,7 @@ import { OpenAPIHono, createRoute, type RouteHandler } from "@hono/zod-openapi";
 import { cors } from "hono/cors";
 import { HTTPException } from "hono/http-exception";
 import { z } from "zod";
-import { aplicarAccion } from "../acciones";
+import { aplicarAccion, sanearVigente } from "../acciones";
 import type { CacheInterpretaciones } from "../cache/clave";
 import {
   PeticionBuscar,
@@ -139,7 +139,10 @@ export function crearApp(deps: DependenciasApi) {
   const manejarBuscar: RouteHandler<typeof rutaBuscar> = async (c) => {
     const p = c.req.valid("json");
     const diccionario = await deps.acceso.obtenerDiccionario(p.dominio);
-    const vigente = p.filtros_vigentes;
+    // G1 también sobre el estado que manda el cliente; al reiniciar no importa.
+    const saneado = sanearVigente(p.filtros_vigentes, diccionario);
+    const vigente = saneado.objeto;
+    const descartadosVigente = p.accion?.tipo === "reiniciar" ? [] : saneado.descartados;
 
     let objeto: ObjetoFiltros;
     let etiquetas: Etiqueta[];
@@ -152,12 +155,12 @@ export function crearApp(deps: DependenciasApi) {
     if (p.accion !== undefined) {
       const r = aplicarAccion(vigente, p.accion, diccionario);
       objeto = r.objeto;
-      descartados = r.descartados;
+      descartados = [...descartadosVigente, ...r.descartados];
       etiquetas = etiquetasUsuario(objeto);
     } else if (!limite.permitir(claveCliente(c.req.raw.headers))) {
       bloqueadoPorGasto = true;
       objeto = vigente ?? OBJETO_VACIO(p.dominio);
-      descartados = [];
+      descartados = descartadosVigente;
       etiquetas = etiquetasUsuario(objeto);
       aclaracion = { pregunta: TEXTO_LIMITE_GASTO, opciones: [], filtros_dudosos: [] };
     } else {
@@ -170,7 +173,7 @@ export function crearApp(deps: DependenciasApi) {
       });
       objeto = r.objeto;
       etiquetas = r.etiquetas;
-      descartados = r.descartados;
+      descartados = [...descartadosVigente, ...r.descartados];
       aclaracion = r.aclaracion;
       desdeCache = r.desde_cache;
       llamoModelo = r.llamo_modelo;
@@ -216,8 +219,10 @@ export function crearApp(deps: DependenciasApi) {
     }),
     async (c) => {
       const p = c.req.valid("json");
-      const facetas = await deps.acceso.facetas(p.filtros, p.atributos);
-      return c.json({ facetas }, 200);
+      const diccionario = await deps.acceso.obtenerDiccionario(p.filtros.dominio);
+      const saneado = sanearVigente(p.filtros, diccionario);
+      const facetas = await deps.acceso.facetas(saneado.objeto ?? OBJETO_VACIO(p.filtros.dominio), p.atributos);
+      return c.json({ facetas, descartados: saneado.descartados }, 200);
     },
   );
 
