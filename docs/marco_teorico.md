@@ -181,6 +181,7 @@ Usadas en el documento 1 (verificadas en septiembre de 2026) o en avances poster
 - Supabase. (s.f.-a). *Row Level Security* [documentación]. Recuperado el 29 de septiembre de 2026, de https://supabase.com/docs/guides/database/postgres/row-level-security
 - Supabase. (s.f.-b). *Edge Functions: Limits* [documentación]. Recuperado el 31 de octubre de 2026, de https://supabase.com/docs/guides/functions/limits
 - GitHub. (s.f.). *GitHub Pages documentation* [documentación]. Recuperado el 31 de octubre de 2026, de https://docs.github.com/en/pages
+- Open Beauty Facts. (s.f.). *Open Beauty Facts API v2 documentation* [documentación y base de datos abierta]. Recuperado el 14 de noviembre de 2026, de https://world.openbeautyfacts.org/
 
 ## 5. Cola de verificación (candidatas)
 
@@ -215,5 +216,6 @@ Descartadas (no admisibles): AI Superior (blog); eesel AI (blog); publicaciones 
 | S8, marco teórico (2026-10-31) | Dinu y Nadkarni (2007); OWASP GenAI Security Project (2025a); PostgreSQL Global Development Group (2025); Shi et al. (2025) |
 | S7, tercer avance (2026-10-24) | AI Superior (2026) y eesel AI (2026): no admisibles, sustituir |
 | Documento 1, versión revisada (2026-11-03) | Las once de §4 más Supabase (s.f.-b) y GitHub (s.f.); formato APA 7 para trabajos de estudiante; registro de cambios al final |
-| Documento 2 | Por asignar |
-| Documento 3 | Por asignar |
+| S10, metodología de extracción (2026-11-14) | Brinkmann, Shraga y Bizer (2025); Open Beauty Facts (s.f.); OWASP GenAI Security Project (2025a); PostgreSQL Global Development Group (2025) |
+| Documento 2 (2026-11-16) | Dinu y Nadkarni (2007); ISO/IEC/IEEE (2018); PostgreSQL Global Development Group (2025); Supabase (s.f.-a) |
+| Documento 3 (2026-11-16) | Brinkmann, Shraga y Bizer (2025); OWASP GenAI Security Project (2025a, 2025b); Shi et al. (2025) |

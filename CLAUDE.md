@@ -127,13 +127,11 @@ Del 2026-10-31 (ADR-0005, sustituye la vertical de ferretería del ADR-0004):
 
 | Id | Decisión | Cómo se cierra |
 |---|---|---|
-| D-01 | Modelo: Jev (decisión tipada) vs LLM con JSON acotado, o ambos | ADR-0003 con el banco de evaluación corrido contra los dos adaptadores. Hasta entonces: interfaz + adaptador de fixtures; después el adaptador LLM-JSON (proveedor con salida JSON estructurada); después Jev. Restricción nueva: la comparación por foto (fase C) exige un modelo con visión, así que el adaptador LLM existe en cualquier escenario y Jev solo cubre texto |
 | D-02 | Procedencia por atributo (declarado / inferido con probabilidad / desconocido) e inferencia por lote de faltantes | No adoptada. El generador conserva la verdad completa y las descripciones mencionan atributos borrados, así que se puede habilitar sin rehacer nada. Se decide después de D-01 y con la rúbrica |
 | D-04 | Rúbrica del integrador | Pedirla al asesor. Condiciona extensión y secciones de documentos 2 y 3 |
 | D-05 | Caché semántica con pgvector | Trabajo futuro; solo si sobra tiempo y con verificación por pregunta sí/no |
-| D-08 | Reconciliar el segundo avance (modelo de lenguaje, aclaración solo por G1) con el tercero (Jev, confianza, caché) y el cambio a tres verticales | El documento 2 declara los cambios y actualiza RF, RNF, generador y diagramas |
 
-Cerradas el 2026-10-31 por ADR-0004: D-03 (hosting: GitHub Pages) y D-07 (categorías: tres verticales con dos categorías cada una). Cerrada el 2026-11-01: D-06 (repo `catalogo-ia`, MIT). Fuera de alcance salvo que el equipo lo pida: calificación "útil / no útil" por búsqueda, app instalable, segundo cliente.
+Cerradas el 2026-10-31 por ADR-0004: D-03 (hosting: GitHub Pages) y D-07 (categorías: tres verticales con dos categorías cada una). Cerrada el 2026-11-01: D-06 (repo `catalogo-ia`, MIT). Cerrada el 2026-11-16 por ADR-0003: D-01 (`AdaptadorInteractivo` activo por omisión sin costo y `AdaptadorGemini` enchufable; Jev diferido). Declarada el 2026-11-16 en el Documento 2: D-08. Fuera de alcance salvo que el equipo lo pida: calificación "útil / no útil" por búsqueda, app instalable, segundo cliente.
 
 ## 6. Arquitectura y flujo
 
