@@ -1,8 +1,8 @@
 // Arnés de evaluación reproducible (CLAUDE.md §9, T6).
 //
 //   pnpm eval                                   adaptador interactivo, catálogo en memoria
-//   pnpm eval -- --acceso=postgres              mismo adaptador contra PostgreSQL (URL_BASE_AGENTE)
-//   pnpm eval -- --adaptador=gemini             AdaptadorGemini (GEMINI_API_KEY en el entorno o en .env)
+//   pnpm eval --acceso=postgres                 mismo adaptador contra PostgreSQL (URL_BASE_AGENTE)
+//   pnpm eval --adaptador=gemini                AdaptadorGemini (GEMINI_API_KEY en el entorno o en .env)
 //
 // Exactitud: corre las 30 consultas con el adaptador que se despliega
 // (AdaptadorInteractivo con FIXTURES_DEMO, que no tiene ninguna frase del banco) o
