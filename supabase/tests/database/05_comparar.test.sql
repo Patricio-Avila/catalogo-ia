@@ -73,8 +73,38 @@ select is(
 -- Atributos de la referencia que no existen en atributo_meta se ignoran
 select is(
   (select count(*) from catalogo.comparar_productos('belleza', 'cuidado_facial', '{"color":"rojo"}'::jsonb, 5, null) c
-   cross join lateral jsonb_array_elements(c.diferencias) d),
+   cross join lateral jsonb_array_elements(c.diferencias) d
+   where d ->> 'atributo' = 'color'),
   0::bigint, 'un atributo desconocido no produce diferencias');
+
+-- Falla cerrado (migración 0008): una referencia sin su contexto obligatorio, como
+-- la que sale de un texto o una foto, no puede dar un nivel alto
+select is(
+  (select bool_and(c.nivel = 0 and 'clase_riesgo' = any (c.riesgo_distinto))
+   from catalogo.comparar_productos('llantas', 'pasajeros', '{"ancho_mm":205,"perfil_pct":55,"rin_pulg":16}'::jsonb, 50, null) c),
+  true, 'referencia solo con la medida: nivel 0 y clase_riesgo como riesgo desconocido');
+select is(
+  (select bool_and(d ->> 'estado' = 'sin_dato' and d -> 'referencia' = 'null'::jsonb)
+   from catalogo.comparar_productos('llantas', 'pasajeros', '{"ancho_mm":205,"perfil_pct":55,"rin_pulg":16}'::jsonb, 5, null) c
+   cross join lateral jsonb_array_elements(c.diferencias) d
+   where d ->> 'atributo' in ('clase_riesgo', 'uso_previsto', 'indice_carga', 'indice_velocidad')),
+  true, 'el contexto faltante aparece como sin dato con referencia nula');
+select is(
+  (select c.nivel <= 0.5 and 'uso_previsto' = any (c.uso_distinto) and cardinality(c.riesgo_distinto) = 0
+   from catalogo.producto p
+   cross join lateral catalogo.comparar_productos(p.dominio, p.categoria, p.atributos - 'uso_previsto', 5, array[p.id]) c
+   where p.id = (select min(id) from catalogo.producto where dominio = 'belleza' and categoria = 'cuidado_corporal')),
+  true, 'uso desconocido en la referencia: nivel acotado a 0.5 y anunciado');
+select is(
+  (select count(*) from interno.par_trampa t
+   join catalogo.producto a on a.id = t.producto_a
+   cross join lateral catalogo.comparar_productos(t.dominio, a.categoria,
+     (select jsonb_object_agg(k, v) from jsonb_each(a.atributos) e(k, v)
+      where k not in (select m.atributo from catalogo.atributo_meta m
+                      where m.dominio = t.dominio and m.categoria = a.categoria and (m.define_uso or m.define_riesgo))),
+     5, array[t.producto_b]) c
+   where c.nivel <> 0),
+  0::bigint, 'pares trampa con referencia sin contexto (como de texto o foto): nivel 0');
 
 -- Orden y tope
 select is((select count(*) from catalogo.comparar_productos('llantas', 'pasajeros', '{"ancho_mm":205,"perfil_pct":55,"rin_pulg":16}'::jsonb, 100000, null)), 200::bigint, 'tope de 200 candidatos');
