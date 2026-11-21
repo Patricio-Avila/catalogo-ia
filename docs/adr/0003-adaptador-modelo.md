@@ -33,21 +33,25 @@ Durante la implementación de la Fase A se construyó además `AdaptadorInteract
 
 La tabla publicada el 2026-11-16 reportaba 100 % de exactitud (30/30) y 100 % en vocabulario ajeno (10/10). Esas cifras se obtuvieron con `AdaptadorFixtures` y unos fixtures que tenían una respuesta fija para cada una de las 35 frases del banco, así que medían una tabla de búsqueda y no la interpretación. Sus latencias, además, se midieron con el catálogo en memoria (`AccesoMemoria`), no en PostgreSQL. La versión anterior queda en el historial de git.
 
-Cifras actuales, `eval/resultados/2026-11-20-interactivo-memoria.json` (`AdaptadorInteractivo` con `FIXTURES_DEMO`, cero frases del banco con respuesta fija, caché apagada, catálogo sintético en memoria):
+Cifras actuales del `AdaptadorInteractivo` con `FIXTURES_DEMO`: cero frases del banco con respuesta fija y caché apagada. Hay dos corridas: una con el catálogo de prueba en memoria (`eval/resultados/2026-11-20-interactivo-memoria.json`) y otra con los 100,020 productos en PostgreSQL, hecha en CI con Supabase local (`eval/resultados/2026-11-21-interactivo-postgres.json`).
 
-| Indicador | Resultado |
-|---|---|
-| Exactitud del objeto de filtros (30 consultas) | `23.3 %` (`7/30`) |
-| Por tipo: normal / baja cobertura / vocabulario ajeno / secuencia | `1/15` / `2/3` / `2/10` / `2/2` |
-| Coincidencia de resultados con la línea base manual (`RF-10`) | `53.3 %` |
-| Maliciosas bloqueadas, adaptador evaluado / modelo engañado | `5/5` / `5/5` |
-| Contexto de riesgo bloqueado (`RF-11`), adaptador / modelo engañado | `3/3` / `3/3` |
-| Catálogo intacto después de las maliciosas | sí |
-| Violaciones de vocabulario prohibido (`G5`) | `0` |
-| Interacciones texto libre vs. modo manual | `30` vs. `95` |
+| Indicador | Memoria | PostgreSQL |
+|---|---|---|
+| Exactitud del objeto de filtros (30 consultas) | `23.3 %` (`7/30`) | `23.3 %` (`7/30`) |
+| Por tipo: normal / baja cobertura / vocabulario ajeno / secuencia | `1/15` / `2/3` / `2/10` / `2/2` | igual |
+| Coincidencia de resultados con la línea base manual (`RF-10`) | `53.3 %` | `26.7 %` |
+| Maliciosas bloqueadas, adaptador evaluado / modelo engañado | `5/5` / `5/5` | `5/5` / `5/5` |
+| Contexto de riesgo bloqueado (`RF-11`), adaptador / modelo engañado | `3/3` / `3/3` | `3/3` / `3/3` |
+| Catálogo intacto después de las maliciosas | sí | sí |
+| Violaciones de vocabulario prohibido (`G5`) | `0` | `0` |
+| Interacciones texto libre vs. modo manual | `30` vs. `95` | `30` vs. `95` |
+| Recálculo sin modelo, `p50` / `p95` (`RNF-05`) | no aplica | `297.6` / `615.3 ms` |
+| Texto libre completo, `p50` / `p95` | no aplica | `464.5` / `819.2 ms` |
+
+La coincidencia con la línea base exige la misma primera página, el mismo total y los mismos faltantes. En memoria, 10 consultas con el objeto equivocado devolvían aun así los mismos resultados que el modo manual, porque el catálogo de prueba es pequeño. En PostgreSQL, con 100,020 productos, solo 2. La cifra que vale para el documento 3 es la de PostgreSQL.
 
 Lectura: la coincidencia léxica sobre el diccionario no entiende sinónimos, la categoría ni la intención ("hidratante", "pastillas", "cutis"), y eso explica la mayor parte de los fallos. Las guardas no dependen del adaptador: con un modelo que obedece al atacante (`eval/modelo_enganado.ts`), G1 y G2 bloquean los 8 casos.
 
-Las latencias en memoria no se reportan como evidencia de `RNF-05`: el recálculo contra PostgreSQL se mide con `pnpm eval --acceso=postgres` en CI (ver `docs/mediciones/`).
+Las latencias en memoria no se reportan como evidencia de `RNF-05`. La de PostgreSQL se toma de la tabla y se detalla en `docs/mediciones/t8_resultados.md` §3.3.
 
 Gemini no se evaluó: el 2026-11-21 se decidió no correr el banco contra la API real para no generar cargos. `AdaptadorGemini` queda enchufable y sin cifras propias; el documento 3 lo declara así. Con `7/30`, la afirmación de que el adaptador interactivo basta para la entrega no se sostiene por sí sola, y el documento 3 debe discutir esa cifra frente a la línea base. Si se mejora el adaptador interactivo, o si se evalúa Gemini con una clave sin facturación (`pnpm eval --adaptador=gemini`), lo decide el equipo.

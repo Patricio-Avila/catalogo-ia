@@ -73,9 +73,43 @@ Consultas medidas sobre `belleza / cuidado_facial` (`16,669` productos en la cat
 
 > **Observación sobre `incluir_sin_dato = true`:** Cuando el usuario activa explícitamente la casilla para incluir productos que carecen del atributo filtrado (`RF-06`), ningún índice de igualdad puede descartar filas por adelantado porque la ausencia de clave (`not (atributos ? k)` o `columna IS NULL`) califica como candidata potencial. En ese régimen, el costo está dominado por el `GROUP BY` de construcción de los arreglos `cumple[]` y `sin_dato[]` sobre los `16,669` productos de la categoría.
 
-### 3.3 Después de la migración 0007 (2026-11-20)
+### 3.3 Después de la migración 0007 (medido el 2026-11-21)
 
-Pendiente: se llena con el artefacto `resultados-base-de-datos` del job de base de datos en CI. `pnpm medir` deja `docs/mediciones/resultados/funciones-<fecha>.json`, con las funciones de 0007 (usuario del agente, `statement_timeout` de 2 s) frente a los cuerpos de 0005 (administrador, sin tope de tiempo). Los casos son los de §3.
+**Entorno:** CI de GitHub Actions (`ubuntu-latest`) con Supabase local y PostgreSQL 17.11. Se midió con `pnpm medir`: 20 repeticiones por caso tras 2 de calentamiento, tiempo de reloj visto por el cliente y los mismos cinco casos de §3 sobre `16,669` productos. Las funciones de 0007 corren con el usuario del agente (`statement_timeout` de 2 s). Los cuerpos de 0005 corren con el administrador, sin tope. Datos completos en `docs/mediciones/resultados/funciones-2026-11-21.json`.
+
+Estas cifras no se comparan con §3.1 y §3.2, que se midieron en la nube con otro hardware: el caso de 5 filtros con faltantes de 0005 tarda `656 ms` aquí y `1,885 ms` allá.
+
+`p50` / `p95` en ms, 0005 → 0007:
+
+| `incluir_sin_dato` | Filtros | `buscar_productos` | `contar_productos` | `calcular_facetas` (0007) |
+|---|---:|---:|---:|---:|
+| `false` | 1 | `21.0 / 22.9` → `29.4 / 30.4` | `128.2 / 131.9` → `206.4 / 209.6` | `50.7 / 59.8` |
+| `false` | 2 | `8.6 / 9.8` → `13.4 / 14.1` | `240.7 / 249.7` → `297.0 / 306.6` | `16.3 / 16.7` |
+| `false` | 3 | `15.2 / 16.9` → `18.5 / 18.8` | `507.0 / 549.1` → `346.7 / 351.3` | `18.1 / 18.2` |
+| `false` | 4 | `5.2 / 5.5` → `7.1 / 7.2` | `593.2 / 614.8` → `364.4 / 376.5` | `5.4 / 5.7` |
+| `false` | 5 | `3.2 / 4.1` → `4.1 / 4.2` | `656.0 / 678.1` → `375.0 / 385.3` | `3.4 / 3.8` |
+| `true` | 1 | `129.0 / 132.6` → `207.9 / 217.3` | `129.0 / 138.6` → `207.7 / 217.4` | `302.0 / 309.3` |
+| `true` | 2 | `246.2 / 254.0` → `299.5 / 314.2` | `246.4 / 256.0` → `296.4 / 304.1` | `325.3 / 348.6` |
+| `true` | 3 | `509.5 / 539.7` → `349.2 / 370.9` | `509.5 / 519.5` → `337.1 / 349.7` | `341.3 / 347.8` |
+| `true` | 4 | `568.6 / 584.5` → `353.3 / 375.3` | `568.7 / 594.7` → `370.2 / 380.7` | `349.9 / 361.0` |
+| `true` | 5 | `655.9 / 683.4` → `356.2 / 373.5` | `650.6 / 674.3` → `366.5 / 377.5` | `360.4 / 383.9` |
+
+**Lectura:**
+1. Con 0007, el recorrido de la categoría cuesta casi lo mismo con cualquier número de filtros, de 200 a 380 ms. Con 0005 crecía con cada filtro, por el `GROUP BY` que arma los arreglos.
+2. Con 3 a 5 filtros, 0007 es más rápida: hasta 1.8 veces en `contar_productos` con 5 filtros. Con 1 y 2 filtros es más lenta, entre 25 % y 60 %, porque evalúa `estado_filtro` fila por fila. Es un costo real del cambio y se declara.
+3. `buscar_productos` sin faltantes se queda por debajo de 30 ms en ambas versiones: usa el índice GIN con `@>` y calcula los arreglos solo para la página.
+4. Ninguna llamada del agente llegó al `statement_timeout` de 2 s (G4): no hubo un solo error 57014.
+5. Peor caso de un `/buscar`, con 5 filtros y faltantes incluidos: las tres consultas suman `1.13 s` de `p95` si corren una tras otra, que es lo que pasa con la única conexión de la Edge Function. Eso supera la meta de 1 s. Sobre el banco de evaluación completo, que mide RNF-05, se cumple (ver abajo).
+
+**Banco de evaluación contra PostgreSQL** (`eval/resultados/2026-11-21-interactivo-postgres.json`, mismo CI, caché apagada), tiempo de `/buscar` completo:
+
+| Medición | `p50` | `p95` | n |
+|---|---:|---:|---:|
+| Recálculo sin modelo (etiquetas manuales, RNF-05) | `297.6 ms` | `615.3 ms` | 95 |
+| Texto libre (intérprete + base) | `464.5 ms` | `819.2 ms` | 30 |
+| Solo intérprete, dentro de texto libre | `0.1 ms` | `0.6 ms` | 30 |
+
+RNF-05 (recálculo sin modelo por debajo de 1 s en el 95 % de las consultas) se cumple en este entorno: `p95 = 615 ms`.
 
 ---
 
