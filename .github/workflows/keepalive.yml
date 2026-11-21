@@ -1,0 +1,27 @@
+name: Mantener Supabase activo
+
+on:
+  schedule:
+    # Lunes y jueves a las 12:00 UTC para evitar pausa por inactividad en plan Free
+    - cron: "0 12 * * 1,4"
+  workflow_dispatch:
+
+jobs:
+  ping:
+    name: Ping de salud a la Edge Function
+    runs-on: ubuntu-latest
+    steps:
+      - name: Consultar /salud si la URL está configurada
+        env:
+          VITE_API_URL: ${{ vars.VITE_API_URL }}
+          VITE_SUPABASE_ANON_KEY: ${{ vars.VITE_SUPABASE_ANON_KEY }}
+        run: |
+          if [ -z "$VITE_API_URL" ]; then
+            echo "VITE_API_URL no configurada; se omite el ping hasta completar el despliegue T9."
+            exit 0
+          fi
+          curl --fail --silent --show-error \
+            -H "apikey: $VITE_SUPABASE_ANON_KEY" \
+            -H "Authorization: Bearer $VITE_SUPABASE_ANON_KEY" \
+            "$VITE_API_URL/salud"
+          echo ""
