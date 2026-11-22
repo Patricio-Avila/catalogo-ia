@@ -73,13 +73,33 @@ export function opcionesConexion(opciones: OpcionesPostgres): postgres.Options<R
   };
 }
 
+/**
+ * Parámetros con tipo declarado (oid de pg_type). postgres.js no infiere el tipo de
+ * textos, números ni null; con un parámetro sin tipo, la consulta se describe en un
+ * viaje a la base y se ejecuta en otro. Con todos los tipos declarados va completa
+ * en uno solo, lo que ahorra una ida y vuelta por consulta a través del pooler.
+ * jsonb (sql.json) y booleanos ya llevan tipo.
+ */
+export const OID = { texto: 25, entero: 23, arregloTexto: 1009 } as const;
+
+export function parametrosTipados(sql: postgres.Sql) {
+  return {
+    texto: (valor: string | null) => sql.typed(valor, OID.texto),
+    entero: (valor: number) => sql.typed(valor, OID.entero),
+    arregloTexto: (valor: string[] | null) => sql.typed(valor, OID.arregloTexto),
+  };
+}
+
 export class AccesoPostgres implements AccesoDatos {
   readonly nombre = "postgres";
   private readonly sql: postgres.Sql;
   readonly cache: CacheInterpretaciones;
 
+  private readonly p: ReturnType<typeof parametrosTipados>;
+
   constructor(opciones: OpcionesPostgres) {
     this.sql = postgres(opciones.url, opcionesConexion(opciones));
+    this.p = parametrosTipados(this.sql);
     this.cache = new CachePostgres(this.sql);
   }
 
@@ -91,20 +111,22 @@ export class AccesoPostgres implements AccesoDatos {
 
   async obtenerDiccionario(dominio: Dominio): Promise<Diccionario> {
     const [fila] = await this.sql<{ diccionario: unknown }[]>`
-      select catalogo.obtener_diccionario(${dominio}) as diccionario`;
+      select catalogo.obtener_diccionario(${this.p.texto(dominio)}) as diccionario`;
     return Diccionario.parse(fila?.diccionario);
   }
 
   async buscar(objeto: ObjetoFiltros, limite = LIMITE_POR_OMISION): Promise<ResultadoBusqueda> {
     const tope = Math.min(Math.max(1, Math.trunc(limite)), LIMITE_MAXIMO);
     const filtros = this.sql.json(objeto.filtros);
+    const dominio = this.p.texto(objeto.dominio);
+    const categoria = this.p.texto(objeto.categoria);
     const [filas, conteo] = await Promise.all([
       this.sql<Record<string, unknown>[]>`
         select id, nombre, marca, precio::float8 as precio, descripcion, cumple, sin_dato
-        from catalogo.buscar_productos(${objeto.dominio}, ${objeto.categoria}, ${filtros}, ${objeto.incluir_sin_dato}, ${tope})`,
+        from catalogo.buscar_productos(${dominio}, ${categoria}, ${filtros}, ${objeto.incluir_sin_dato}, ${this.p.entero(tope)})`,
       this.sql<{ total: string | number; faltantes: string | number }[]>`
         select total, faltantes
-        from catalogo.contar_productos(${objeto.dominio}, ${objeto.categoria}, ${filtros}, ${objeto.incluir_sin_dato})`,
+        from catalogo.contar_productos(${dominio}, ${categoria}, ${filtros}, ${objeto.incluir_sin_dato})`,
     ]);
     const c = conteo[0];
     return {
@@ -119,7 +141,7 @@ export class AccesoPostgres implements AccesoDatos {
   async facetas(objeto: ObjetoFiltros, atributos?: string[]): Promise<Faceta[]> {
     const filas = await this.sql<{ atributo: string; valor: string; productos: string | number }[]>`
       select atributo, valor, productos
-      from catalogo.calcular_facetas(${objeto.dominio}, ${objeto.categoria}, ${this.sql.json(objeto.filtros)}, ${objeto.incluir_sin_dato}, ${atributos ?? null})`;
+      from catalogo.calcular_facetas(${this.p.texto(objeto.dominio)}, ${this.p.texto(objeto.categoria)}, ${this.sql.json(objeto.filtros)}, ${objeto.incluir_sin_dato}, ${this.p.arregloTexto(atributos ?? null)})`;
     const porAtributo = new Map<string, { valor: string; productos: number }[]>();
     for (const f of filas) {
       const lista = porAtributo.get(f.atributo) ?? [];
@@ -135,15 +157,19 @@ export class AccesoPostgres implements AccesoDatos {
 }
 
 class CachePostgres implements CacheInterpretaciones {
-  constructor(private readonly sql: postgres.Sql) {}
+  private readonly p: ReturnType<typeof parametrosTipados>;
+
+  constructor(private readonly sql: postgres.Sql) {
+    this.p = parametrosTipados(sql);
+  }
 
   async obtener(clave: string): Promise<EntradaCache | null> {
     const [fila] = await this.sql<{ entrada: EntradaCache | null }[]>`
-      select servicio.cache_obtener(${clave}) as entrada`;
+      select servicio.cache_obtener(${this.p.texto(clave)}) as entrada`;
     return fila?.entrada ?? null;
   }
 
   async guardar(clave: string, entrada: EntradaCache): Promise<void> {
-    await this.sql`select servicio.cache_guardar(${clave}, ${this.sql.json(entrada)})`;
+    await this.sql`select servicio.cache_guardar(${this.p.texto(clave)}, ${this.sql.json(entrada)})`;
   }
 }
