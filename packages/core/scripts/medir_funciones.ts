@@ -7,7 +7,7 @@
 // Mismos cinco casos de T8 (docs/mediciones/t8_resultados.md §3): belleza /
 // cuidado_facial con 1 a 5 filtros, con y sin incluir_sin_dato.
 //   - Funciones públicas (0007), con el usuario del agente (URL_BASE_AGENTE), es
-//     decir, con su statement_timeout de 2 s: buscar_productos, contar_productos y
+//     decir, con su statement_timeout (G4): buscar_productos, contar_productos y
 //     calcular_facetas, las tres consultas que hace POST /buscar.
 //   - Referencia de 0005, con el administrador (URL_BASE_ADMIN), sin tope de
 //     tiempo: los cuerpos anteriores de buscar_productos y contar_productos sobre
