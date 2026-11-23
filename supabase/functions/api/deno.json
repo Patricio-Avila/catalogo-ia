@@ -4,7 +4,7 @@
     "hono": "npm:hono@^4.13.16",
     "hono/cors": "npm:hono@^4.13.16/cors",
     "hono/http-exception": "npm:hono@^4.13.16/http-exception",
-    "postgres": "npm:postgres@^4.0.0",
+    "postgres": "npm:postgres@4.0.0",
     "zod": "npm:zod@^4.6.7"
   }
 }

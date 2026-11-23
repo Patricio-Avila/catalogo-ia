@@ -1,7 +1,7 @@
 -- Migración 0007 (búsqueda sin arreglos): las funciones públicas devuelven lo
 -- mismo que la implementación de referencia de 0005 (evaluar_filtros), en el mismo
 -- orden, con los mismos motivos y conteos, con y sin incluir_sin_dato. Además, el
--- caso más caro de T8 cabe en el statement_timeout de 2 s del agente (G4, RNF-05),
+-- caso más caro de T8 cabe en 2 s (RNF-05; el tope del agente es de 5 s desde 0009, G4),
 -- y las funciones internas nuevas no son ejecutables por el agente (G3).
 begin;
 create extension if not exists pgtap with schema extensions;

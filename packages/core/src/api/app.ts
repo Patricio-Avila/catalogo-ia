@@ -21,7 +21,7 @@ import {
 } from "../contrato/api";
 import { Dominio, OBJETO_VACIO, type ObjetoFiltros } from "../contrato/filtros";
 import type { Faceta, ResultadoBusqueda } from "../contrato/respuestas";
-import type { AccesoDatos } from "../datos/acceso";
+import { BaseNoDisponible, type AccesoDatos } from "../datos/acceso";
 import { interpretarPeticion, type Etiqueta } from "../interpretar";
 import type { AdaptadorModelo } from "../modelo/interfaz";
 import { salud } from "../salud";
@@ -38,6 +38,12 @@ export interface DependenciasApi {
   /** Registro de errores; por omisión console.error. Nunca llega al cliente. */
   registrar?: (mensaje: string, detalle: unknown) => void;
 }
+
+// 503 en las rutas que leen la base: no respondió a tiempo o se reconectó (enmienda de ADR-0002).
+const RESPUESTA_503 = {
+  description: "la base no respondió a tiempo; se puede reintentar",
+  content: { "application/json": { schema: RespuestaError } },
+};
 
 const TEXTO_LIMITE_GASTO =
   "Por ahora no puedo interpretar texto libre. Puedes seguir buscando con las etiquetas manuales o intentar en un minuto.";
@@ -78,6 +84,10 @@ export function crearApp(deps: DependenciasApi) {
       return c.json({ error: "peticion_invalida" } satisfies z.infer<typeof RespuestaError>, 400);
     }
     registrar(`[api] ${c.req.method} ${c.req.path}`, err);
+    // La base no respondió a tiempo o la conexión se rompió: se puede reintentar.
+    if (err instanceof BaseNoDisponible) {
+      return c.json({ error: "base_no_disponible" } satisfies z.infer<typeof RespuestaError>, 503);
+    }
     return c.json({ error: "error_interno" } satisfies z.infer<typeof RespuestaError>, 500);
   });
 
@@ -100,7 +110,7 @@ export function crearApp(deps: DependenciasApi) {
       method: "get",
       path: "/verticales",
       summary: "Verticales disponibles con sus categorías, textos y aviso (selector del cliente)",
-      responses: { 200: { description: "verticales", content: { "application/json": { schema: RespuestaVerticales } } } },
+      responses: { 200: { description: "verticales", content: { "application/json": { schema: RespuestaVerticales } } }, 503: RESPUESTA_503 },
     }),
     async (c) => c.json({ verticales: await deps.acceso.obtenerVerticales() }, 200),
   );
@@ -115,6 +125,7 @@ export function crearApp(deps: DependenciasApi) {
       responses: {
         200: { description: "diccionario", content: { "application/json": { schema: RespuestaDiccionario } } },
         400: { description: "dominio inválido", content: { "application/json": { schema: RespuestaError } } },
+        503: RESPUESTA_503,
       },
     }),
     async (c) => {
@@ -133,6 +144,7 @@ export function crearApp(deps: DependenciasApi) {
       200: { description: "resultados, etiquetas, facetas y aclaración", content: { "application/json": { schema: RespuestaBuscar } } },
       400: { description: "petición inválida", content: { "application/json": { schema: RespuestaError } } },
       500: { description: "error interno", content: { "application/json": { schema: RespuestaError } } },
+      503: RESPUESTA_503,
     },
   });
 
@@ -215,6 +227,7 @@ export function crearApp(deps: DependenciasApi) {
       responses: {
         200: { description: "facetas", content: { "application/json": { schema: RespuestaFacetas } } },
         400: { description: "petición inválida", content: { "application/json": { schema: RespuestaError } } },
+        503: RESPUESTA_503,
       },
     }),
     async (c) => {

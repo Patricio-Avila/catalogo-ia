@@ -24,8 +24,8 @@ select has_role('agente_api', 'existe el usuario de conexión');
 select is((select rolsuper from pg_roles where rolname = 'catalogo_duenio'), false, 'catalogo_duenio no es superusuario (§7.2.5)');
 select is((select rolcanlogin from pg_roles where rolname = 'agente_lectura'), false, 'agente_lectura no inicia sesión');
 select is_member_of('agente_lectura', 'agente_api', 'agente_api hereda agente_lectura');
-select ok((select rolconfig from pg_roles where rolname = 'agente_api') @> array['statement_timeout=2s'], 'agente_api con statement_timeout de 2 s (G4)');
-select ok((select rolconfig from pg_roles where rolname = 'agente_lectura') @> array['statement_timeout=2s'], 'agente_lectura con statement_timeout de 2 s (G4)');
+select ok((select rolconfig from pg_roles where rolname = 'agente_api') @> array['statement_timeout=5s'], 'agente_api con statement_timeout de 5 s (G4, migración 0009)');
+select ok((select rolconfig from pg_roles where rolname = 'agente_lectura') @> array['statement_timeout=5s'], 'agente_lectura con statement_timeout de 5 s (G4, migración 0009)');
 
 -- RNF-01: ni lectura directa ni escritura sobre producto
 select throws_ok($$ select pg_temp.como_agente('select * from catalogo.producto limit 1') $$, '42501', null, 'SELECT directo sobre producto denegado');

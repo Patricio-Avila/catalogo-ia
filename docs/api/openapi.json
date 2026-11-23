@@ -143,6 +143,48 @@
                 }
               }
             }
+          },
+          "503": {
+            "description": "la base no respondió a tiempo; se puede reintentar",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string",
+                      "enum": [
+                        "peticion_invalida",
+                        "no_encontrado",
+                        "error_interno",
+                        "base_no_disponible"
+                      ]
+                    },
+                    "campos": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "ruta": {
+                            "type": "string"
+                          },
+                          "mensaje": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "ruta",
+                          "mensaje"
+                        ]
+                      }
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ]
+                }
+              }
+            }
           }
         }
       }
@@ -286,7 +328,50 @@
                       "enum": [
                         "peticion_invalida",
                         "no_encontrado",
-                        "error_interno"
+                        "error_interno",
+                        "base_no_disponible"
+                      ]
+                    },
+                    "campos": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "ruta": {
+                            "type": "string"
+                          },
+                          "mensaje": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "ruta",
+                          "mensaje"
+                        ]
+                      }
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ]
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "la base no respondió a tiempo; se puede reintentar",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string",
+                      "enum": [
+                        "peticion_invalida",
+                        "no_encontrado",
+                        "error_interno",
+                        "base_no_disponible"
                       ]
                     },
                     "campos": {
@@ -1028,7 +1113,8 @@
                       "enum": [
                         "peticion_invalida",
                         "no_encontrado",
-                        "error_interno"
+                        "error_interno",
+                        "base_no_disponible"
                       ]
                     },
                     "campos": {
@@ -1069,7 +1155,50 @@
                       "enum": [
                         "peticion_invalida",
                         "no_encontrado",
-                        "error_interno"
+                        "error_interno",
+                        "base_no_disponible"
+                      ]
+                    },
+                    "campos": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "ruta": {
+                            "type": "string"
+                          },
+                          "mensaje": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "ruta",
+                          "mensaje"
+                        ]
+                      }
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ]
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "la base no respondió a tiempo; se puede reintentar",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string",
+                      "enum": [
+                        "peticion_invalida",
+                        "no_encontrado",
+                        "error_interno",
+                        "base_no_disponible"
                       ]
                     },
                     "campos": {
@@ -1307,7 +1436,50 @@
                       "enum": [
                         "peticion_invalida",
                         "no_encontrado",
-                        "error_interno"
+                        "error_interno",
+                        "base_no_disponible"
+                      ]
+                    },
+                    "campos": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "ruta": {
+                            "type": "string"
+                          },
+                          "mensaje": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "ruta",
+                          "mensaje"
+                        ]
+                      }
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ]
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "la base no respondió a tiempo; se puede reintentar",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string",
+                      "enum": [
+                        "peticion_invalida",
+                        "no_encontrado",
+                        "error_interno",
+                        "base_no_disponible"
                       ]
                     },
                     "campos": {

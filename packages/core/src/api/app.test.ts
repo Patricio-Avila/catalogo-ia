@@ -1,6 +1,7 @@
 // Pruebas de la API con la app en memoria (Hono usa la API web estándar).
 
 import type { ObjetoFiltros } from "../contrato/filtros";
+import { BaseNoDisponible } from "../datos/acceso";
 import { AccesoNulo } from "../datos/acceso_nulo";
 import { FIXTURES_MODELO } from "../datos_prueba/fixtures_modelo";
 import { AdaptadorFixtures } from "../modelo/fixtures";
@@ -198,6 +199,18 @@ describe("errores y CORS", () => {
     expect(r.status).toBe(500);
     expect(await r.json()).toEqual({ error: "error_interno" });
     expect(registros).toHaveLength(1);
+  });
+
+  it("la base no responde a tiempo → 503 base_no_disponible, para que el cliente reintente", async () => {
+    const { app, acceso, registros } = montar();
+    acceso.facetas = async () => { throw new BaseNoDisponible("tope de tiempo"); };
+    const r = await post(app, "/buscar", { dominio: "belleza", accion: { tipo: "reiniciar" }, filtros_vigentes: null });
+    expect(r.status).toBe(503);
+    expect(await r.json()).toEqual({ error: "base_no_disponible" });
+    expect(registros).toHaveLength(1);
+
+    acceso.obtenerDiccionario = async () => { throw new BaseNoDisponible("QUEUE_TIMEOUT"); };
+    expect((await app.request("/diccionario/belleza")).status).toBe(503);
   });
 
   it("ruta inexistente → 404 genérico", async () => {

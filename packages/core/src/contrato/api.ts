@@ -94,7 +94,8 @@ export const RespuestaSalud = z.object({
 
 /** Errores al cliente siempre genéricos; el detalle va al log de la función. */
 export const RespuestaError = z.object({
-  error: z.enum(["peticion_invalida", "no_encontrado", "error_interno"]),
+  /** base_no_disponible (503): la base no respondió a tiempo; el cliente puede reintentar una vez. */
+  error: z.enum(["peticion_invalida", "no_encontrado", "error_interno", "base_no_disponible"]),
   /** Solo en peticion_invalida: qué campo del cuerpo falló. Nunca detalle interno. */
   campos: z.array(z.object({ ruta: z.string(), mensaje: z.string() })).optional(),
 });
