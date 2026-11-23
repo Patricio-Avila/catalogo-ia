@@ -63,8 +63,23 @@ export function crearClienteLocal(): ClienteCatalogo {
   };
 }
 
-export function crearClienteHttp(urlBase: string, claveAnon?: string): ClienteCatalogo {
+/**
+ * Un 503 de la API significa que la base no respondió a tiempo o que la conexión
+ * se rompió y ya se abrió otra (enmienda de ADR-0002). Se reintenta una sola vez,
+ * y solo en lecturas que no llaman al modelo: las rutas GET y las acciones
+ * estructuradas de /buscar. El texto libre no se reintenta, para no repetir una
+ * llamada al modelo.
+ */
+async function pedirConReintento(pedir: () => Promise<Response>, reintentar: boolean, esperaMs: number): Promise<Response> {
+  const r = await pedir();
+  if (r.status !== 503 || !reintentar) return r;
+  await new Promise((listo) => setTimeout(listo, esperaMs));
+  return pedir();
+}
+
+export function crearClienteHttp(urlBase: string, claveAnon?: string, opciones: { esperaReintentoMs?: number } = {}): ClienteCatalogo {
   const base = urlBase.replace(/\/+$/, "");
+  const espera = opciones.esperaReintentoMs ?? 500;
   const cabeceras: Record<string, string> = { "content-type": "application/json" };
   if (claveAnon) {
     cabeceras.apikey = claveAnon;
@@ -74,22 +89,22 @@ export function crearClienteHttp(urlBase: string, claveAnon?: string): ClienteCa
   return {
     modo: "remoto",
     async obtenerVerticales(): Promise<Vertical[]> {
-      const r = await fetch(`${base}/verticales`, { headers: cabeceras });
+      const r = await pedirConReintento(() => fetch(`${base}/verticales`, { headers: cabeceras }), true, espera);
       if (!r.ok) throw new Error("No se pudieron cargar las verticales");
       const cuerpo = (await r.json()) as { verticales: Vertical[] };
       return cuerpo.verticales;
     },
     async obtenerDiccionario(dominio: Dominio): Promise<Diccionario> {
-      const r = await fetch(`${base}/diccionario/${dominio}`, { headers: cabeceras });
+      const r = await pedirConReintento(() => fetch(`${base}/diccionario/${dominio}`, { headers: cabeceras }), true, espera);
       if (!r.ok) throw new Error("No se pudo cargar el diccionario");
       return (await r.json()) as Diccionario;
     },
     async buscar(peticion: PeticionBuscar): Promise<RespuestaBuscar> {
-      const r = await fetch(`${base}/buscar`, {
-        method: "POST",
-        headers: cabeceras,
-        body: JSON.stringify(peticion),
-      });
+      const r = await pedirConReintento(
+        () => fetch(`${base}/buscar`, { method: "POST", headers: cabeceras, body: JSON.stringify(peticion) }),
+        peticion.accion !== undefined,
+        espera,
+      );
       if (!r.ok) throw new Error("Error al ejecutar la búsqueda");
       return (await r.json()) as RespuestaBuscar;
     },

@@ -1,6 +1,6 @@
 # ADR-0002: Middleware agnóstico sobre Edge Functions y stack de la Fase 0
 
-- Estado: aceptada, 2026-10-31. El punto 9 (hosting web) queda reemplazado por ADR-0004 el mismo día: GitHub Pages como principal.
+- Estado: aceptada, 2026-10-31. El punto 9 (hosting web) queda reemplazado por ADR-0004 el mismo día: GitHub Pages como principal. Enmienda del 2026-11-23 sobre la conexión del agente en la nube: tope por operación, 503 con reintento y versión fija del driver (ver al final).
 - Decisores: Patricio Avila por el equipo (Valeria Hernández, Alejandro Gómez).
 - Ámbito: capa intermedia entre el cliente y la base, acceso a datos, contrato de la API, adaptadores de modelo, caché, generador de datos, frontend, hosting, pruebas, CI y estructura del repositorio.
 
@@ -47,6 +47,32 @@ Restricciones: equipo de tres personas, dos documentos por escribir, repo públi
 - Límites a respetar en Edge Functions: 256 MB de memoria, 2 s de CPU por petición (la espera de red no cuenta), 150 s de reloj en el plan Free y 400 s en los de pago. El middleware valida un JSON y espera al modelo y a la base; usa milisegundos de CPU.
 - El usuario de conexión del agente es un rol `LOGIN` miembro de `agente_lectura`, creado por migración; su contraseña vive en `supabase secrets`.
 - Errores hacia el cliente genéricos; el detalle va al log de la función.
+
+## Enmienda del 2026-11-23: conexión del agente en la nube
+
+Al publicar la Edge Function contra la base en la nube (T9) aparecieron fallas que CI no muestra, porque allí la API corre en Node contra Supabase local, sin TLS. Se diagnosticaron con los registros de la función y con una prueba de carga contra la función publicada: búsquedas en serie, con y sin `incluir_sin_dato`, en las tres verticales, más diccionarios y una ráfaga de 6 búsquedas simultáneas.
+
+| Causa | Síntoma | Atención |
+|---|---|---|
+| postgres.js encadena hasta 100 consultas en la misma conexión | `/buscar` colgado hasta que Supabase corta la función (136 s) | `max_pipeline: 1` y `queue_timeout` de 10 s en el driver |
+| La instancia nano del plan Free tarda de 1.2 a 2.2 s por consulta sobre una vertical (CI: 0.2 a 0.4 s) | Cancelación por `statement_timeout` (57014): 16 de 71 llamadas fallaron | Migración 0009: tope de 5 s por consulta; G4 se conserva |
+| Sobre TLS, en el runtime de Deno, el driver pierde el hilo del protocolo (`The server sent a message with an invalid length`), con postgres.js 4.0.0 y 4.1.1 | Falla inmediata, o espera de bytes que no llegan hasta que Supabase corta la función (150 s) | Tope de 12 s por operación; la API responde 503 y el cliente reintenta una vez |
+
+Decisiones:
+
+1. Driver: `max_pipeline: 1`, `queue_timeout: 10` y parámetros con tipo declarado. `deno.json` fija `npm:postgres@4.0.0`, la misma versión que prueba CI; con `^4.0.0` la nube resolvía 4.1.1.
+2. `AccesoPostgres` corre cada operación con tope de reloj (`TOPE_OPERACION_MS`, 12 s). Si vence, cierra la conexión sin esperar y la siguiente operación abre una nueva. El tope y las fallas de conexión del driver (`CONNECTION_CLOSED`, `PROTOCOL_ERROR`, `QUEUE_TIMEOUT` y similares) salen como `BaseNoDisponible`, que la API responde con 503 `base_no_disponible`. Una cancelación por `statement_timeout` sigue respondiendo 500.
+3. El cliente web reintenta una vez, tras 500 ms, un 503 en las rutas GET y en las acciones estructuradas de `/buscar`. El texto libre no se reintenta, para no repetir la llamada al modelo.
+4. Una conexión por instancia. Con tres, las consultas en paralelo saturaron la CPU de la nano y fallaron 13 de 68 llamadas.
+
+Resultado (2026-11-23, función publicada, una conexión, tope de 5 s): 45 de 45 llamadas correctas. Tres respondieron 503 al primer intento, una por cada causa contenida (error de protocolo, tope de 12 s y fila durante la ráfaga), y las tres se recuperaron con el reintento. `/buscar` tardó 4.0 s en la mediana y 12.7 s en el percentil 95, este último por la ráfaga. No hubo cuelgues. Con el mismo guion, antes de 0009, fallaron 16 de 71 llamadas.
+
+La latencia de la nube no es la de RNF-05: esa meta se mide en CI (`docs/mediciones/t8_resultados.md` §3.3).
+
+Pendiente:
+
+- El error de protocolo está contenido, no resuelto. La alternativa es el build de postgres.js para Deno, que usa los sockets propios del runtime en lugar de la capa de compatibilidad con Node.
+- El punto 3 no se enmienda. El 2026-11-21 la URL del agente pasó al modo sesión del pooler (puerto 5432), con la hipótesis de que el pooler perdía respuestas. Los registros mostraron el error de protocolo también en modo sesión, así que el modo no era la causa. Las mediciones de esta enmienda se hicieron en modo sesión. Volver al modo transacción es cambiar el puerto en el secreto `URL_BASE_AGENTE`.
 
 ## Datos verificados (2026-10-31)
 
