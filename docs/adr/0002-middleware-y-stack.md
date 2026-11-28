@@ -1,6 +1,6 @@
 # ADR-0002: Middleware agnóstico sobre Edge Functions y stack de la Fase 0
 
-- Estado: aceptada, 2026-10-31. El punto 9 (hosting web) queda reemplazado por ADR-0004 el mismo día: GitHub Pages como principal. Enmienda del 2026-11-23 sobre la conexión del agente en la nube: tope por operación, 503 con reintento y versión fija del driver (ver al final).
+- Estado: aceptada, 2026-10-31. El punto 9 (hosting web) queda reemplazado por ADR-0004 el mismo día: GitHub Pages como principal. Enmienda del 2026-11-23 sobre la conexión del agente en la nube: tope por operación, 503 con reintento y versión fija del driver. Enmienda del 2026-11-28: socket con TCP y TLS de Deno y regreso al modo transacción (ver al final).
 - Decisores: Patricio Avila por el equipo (Valeria Hernández, Alejandro Gómez).
 - Ámbito: capa intermedia entre el cliente y la base, acceso a datos, contrato de la API, adaptadores de modelo, caché, generador de datos, frontend, hosting, pruebas, CI y estructura del repositorio.
 
@@ -71,8 +71,40 @@ La latencia de la nube no es la de RNF-05: esa meta se mide en CI (`docs/medicio
 
 Pendiente:
 
-- El error de protocolo está contenido, no resuelto. La alternativa es el build de postgres.js para Deno, que usa los sockets propios del runtime en lugar de la capa de compatibilidad con Node.
-- El punto 3 no se enmienda. El 2026-11-21 la URL del agente pasó al modo sesión del pooler (puerto 5432), con la hipótesis de que el pooler perdía respuestas. Los registros mostraron el error de protocolo también en modo sesión, así que el modo no era la causa. Las mediciones de esta enmienda se hicieron en modo sesión. Volver al modo transacción es cambiar el puerto en el secreto `URL_BASE_AGENTE`.
+- El error de protocolo está contenido, no resuelto. La alternativa es el build de postgres.js para Deno, que usa los sockets propios del runtime en lugar de la capa de compatibilidad con Node. Resuelto el 2026-11-28 con un socket propio; ver la enmienda siguiente.
+- El punto 3 no se enmienda. El 2026-11-21 la URL del agente pasó al modo sesión del pooler (puerto 5432), con la hipótesis de que el pooler perdía respuestas. Los registros mostraron el error de protocolo también en modo sesión, así que el modo no era la causa. Las mediciones de esta enmienda se hicieron en modo sesión. Volver al modo transacción es cambiar el puerto en el secreto `URL_BASE_AGENTE`. El 2026-11-28 volvió al modo transacción.
+
+## Enmienda del 2026-11-28: socket de Deno y regreso al modo transacción
+
+postgres.js ya no publica un build para Deno desde la versión 4.0; el último es el de la 3.4.9. La 4.0.0 acepta un socket propio (opción `socket`) que se declara ya negociado, y con eso basta para sacar del driver la conexión y el TLS.
+
+Decisiones:
+
+1. La Edge Function pasa `socketTlsPropio` (`packages/core/src/datos/socket_propio.ts`) con `Deno.connect` y `Deno.startTls`. El socket envía la SSLRequest, inicia TLS con Deno y se marca `negotiated`, así que el driver no repite la negociación. Cada lectura usa un búfer nuevo. El núcleo recibe las primitivas como parámetro y sigue sin usar `Deno.*`. En Node (CI, arnés y mediciones) el driver usa su propio socket.
+2. El driver se queda en 4.0.0, la misma versión que prueba CI.
+3. La URL del agente vuelve al modo transacción del pooler (puerto 6543). El punto 3 se cumple tal como está escrito.
+4. El tope de 12 s, el 503 y el reintento del cliente se conservan. Ahora cubren la fila de espera cuando llegan varias búsquedas a la vez a una sola conexión.
+
+Resultado, función publicada y mismo guion de carga (búsquedas en serie con y sin `incluir_sin_dato` en las tres verticales, diccionarios, verticales y una ráfaga de 6 búsquedas simultáneas):
+
+| | 2026-11-23, socket del driver, modo sesión | 2026-11-27, socket de Deno, modo sesión | 2026-11-28, socket de Deno, modo transacción |
+|---|---|---|---|
+| Llamadas correctas al final | 45 de 45 | 60 de 60 | 60 de 60 |
+| 503 al primer intento | 3: error de protocolo, tope de 12 s y fila en la ráfaga | 3, todos en la ráfaga | 2, todos en la ráfaga |
+| Fallas en las búsquedas en serie | 2 | 0 | 0 |
+| `/buscar`, p50 / p95 | 4.0 / 12.7 s | 4.1 / 12.8 s | 4.1 / 9.0 s |
+
+El 23 de noviembre se corrieron 2 rondas del guion y después 3. Los registros de la función entre las 23:20 del 27 y la 01:10 del 28 solo tienen dos tipos de error:
+
+- `QUEUE_TIMEOUT` en las ráfagas: seis búsquedas simultáneas esperan más de 10 s por la única conexión.
+- Un `28P01` (autenticación) en la primera conexión después de cambiar el secreto. Las siguientes entraron sin error.
+
+No hay ningún error de protocolo.
+
+Pendiente:
+
+- La causa exacta del error de protocolo no se aisló. Desaparece cuando el TLS no pasa por la capa de compatibilidad con Node, pero no se verificó si es una falla de Deno.
+- Con una conexión por instancia, una ráfaga de búsquedas simultáneas forma fila y algunas salen con 503 antes del reintento. Subir conexiones saturó la CPU de la nano (decisión 4 de la enmienda anterior).
 
 ## Datos verificados (2026-10-31)
 

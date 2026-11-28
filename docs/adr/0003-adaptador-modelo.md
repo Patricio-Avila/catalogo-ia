@@ -1,6 +1,6 @@
 # ADR-0003: Adaptador de modelo activo sin costo y estrategia enchufable (D-01)
 
-- Estado: aceptada, 2026-11-16. Cierra la decisión abierta D-01 de `CLAUDE.md` §5 bajo restricción de costo cero y autonomía sin dependencia obligatoria de API externa.
+- Estado: aceptada, 2026-11-16. Cierra la decisión abierta D-01 de `CLAUDE.md` §5 bajo restricción de costo cero y autonomía sin dependencia obligatoria de API externa. Revisión del adaptador interactivo el 2026-11-28 (ver al final).
 - Decisores: Patricio Avila por el equipo (Valeria Hernández, Alejandro Gómez).
 - Ámbito: capa de interpretación en `packages/core/src/modelo/`, Edge Function (`supabase/functions/api/index.ts`), cliente web (`apps/web/src/cliente_api.ts`) y evaluación del sistema.
 
@@ -55,3 +55,31 @@ Lectura: la coincidencia léxica sobre el diccionario no entiende sinónimos, la
 Las latencias en memoria no se reportan como evidencia de `RNF-05`. La de PostgreSQL se toma de la tabla y se detalla en `docs/mediciones/t8_resultados.md` §3.3.
 
 Gemini no se evaluó: el 2026-11-21 se decidió no correr el banco contra la API real para no generar cargos. `AdaptadorGemini` queda enchufable y sin cifras propias; el documento 3 lo declara así. Con `7/30`, la afirmación de que el adaptador interactivo basta para la entrega no se sostiene por sí sola, y el documento 3 debe discutir esa cifra frente a la línea base. Si se mejora el adaptador interactivo, o si se evalúa Gemini con una clave sin facturación (`pnpm eval --adaptador=gemini`), lo decide el equipo.
+
+## Revisión del 2026-11-28: reglas generales en el adaptador interactivo
+
+El equipo decidió mejorar el adaptador interactivo sin agregar respuestas por frase. `heuristico.ts` agrega tres reglas que salen del diccionario o de la morfología, no del banco:
+
+1. Plural y acentos: "tabletas" coincide con "tableta" y "capsulas" con "cápsula".
+2. Formas derivadas de un valor en infinitivo: "hidratante" → hidratar, "limpiador" → limpiar. Entran con confianza 0.8, así que se aplican marcadas como sugeridas.
+3. Categoría deducida: si el texto no nombra la categoría y los valores reconocidos solo existen juntos en una, se propone esa.
+
+Los sinónimos y coloquialismos ("pastillas", "cutis", "piel delicada") siguen fuera: son trabajo del adaptador de lenguaje.
+
+| Indicador | 2026-11-20 | 2026-11-28 |
+|---|---|---|
+| Exactitud, catálogo en memoria (`eval/resultados/2026-11-28-interactivo-memoria.json`) | `7/30` | `10/30` |
+| Por tipo en memoria: normal / baja cobertura / vocabulario ajeno / secuencia | `1/15` / `2/3` / `2/10` / `2/2` | `3/15` / `3/3` / `2/10` / `2/2` |
+| Coincidencia con la línea base, memoria | `53.3 %` | `66.7 %` |
+| Exactitud con los diccionarios de los 100,020 productos (arnés local) | `7/30` | `12/30` |
+| Maliciosas y contexto de riesgo bloqueados | `8/8` | `8/8` |
+| Violaciones de vocabulario prohibido | `0` | `0` |
+
+La cifra en PostgreSQL sale de la corrida de CI de esta rama y se agrega a esta tabla.
+
+Advertencias para el documento 3:
+
+- El resultado no es ciego. Las reglas se escribieron viendo qué consultas del banco fallaban, aunque ninguna nombra una frase. Una medición limpia necesita un banco nuevo de unas 15 frases escritas por Valeria o Alejandro sin ver el adaptador. El arnés ya lo admite: `pnpm eval --banco=<archivo>.json`.
+- Tres consultas del banco no se pueden acertar con ningún adaptador. Piden valores fuera del rango del diccionario, y G1 los descarta: F05 (10 mg) y F06 (20 mg), cuando `concentracion_mg` en medicamentos va de 30 a 1000; y L08 (precio menor a 850), cuando el mínimo en pasajeros es 900.54. Corregir el banco le toca al equipo. Mientras tanto, el máximo alcanzable es `27/30`.
+- La regla 3 puede proponer una categoría que el banco espera nula: en F03 los resultados son los mismos, pero el objeto no coincide.
+

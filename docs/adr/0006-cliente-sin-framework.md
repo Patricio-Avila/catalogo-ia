@@ -1,6 +1,6 @@
 # ADR-0006: Cliente web en TypeScript sin framework
 
-- Estado: propuesta, 2026-11-20. Pendiente del visto bueno del equipo: cambia una decisión cerrada (`CLAUDE.md` §1.7 y §4). Si se acepta, reemplaza la parte de React y Tailwind del punto 1 del ADR-0004. El resto del ADR-0004 sigue vigente: Vite, TypeScript, móvil primero, PWA y GitHub Pages.
+- Estado: aceptada, 2026-11-28, por Patricio Avila por el equipo. Propuesta el 2026-11-20. Cambia una decisión cerrada (`CLAUDE.md` §1.7 y §4): reemplaza la parte de React y Tailwind del punto 1 del ADR-0004. El resto del ADR-0004 sigue vigente: Vite, TypeScript, móvil primero, PWA y GitHub Pages.
 - Decisores: el equipo (Patricio Avila, Valeria Hernández, Alejandro Gómez).
 - Ámbito: la tecnología del cliente web de `apps/web`.
 
@@ -24,7 +24,7 @@ La revisión del 2026-11-20 encontró la diferencia entre la decisión registrad
 1. Migrar el cliente a React y Tailwind.
 2. Declarar el cambio.
 
-## Decisión propuesta
+## Decisión
 
 Mantener el cliente en TypeScript sin framework y declararlo:
 
@@ -40,6 +40,7 @@ Mantener el cliente en TypeScript sin framework y declararlo:
 ## Consecuencias
 
 - El documento 3 declara el cambio en la sección de evolución, igual que el documento 1 revisado declara sus decisiones fechadas.
-- Las delimitaciones del tercer avance (`CLAUDE.md` §3.4) y §4 se actualizan cuando el equipo acepte este ADR.
+- `CLAUDE.md` §3.4, §4, §6 y §11 se actualizaron el 2026-11-28. El texto de las delimitaciones del tercer avance se conserva como se entregó, con una nota del cambio.
+- El cambio queda en la lista de cambios respecto al documento 1 (ADR-0007).
 - El escape manual es un riesgo que React cubriría solo. Se mitiga con la regla del punto 2 y con revisión de código.
 - La fase B (comparación y modo asistido) agrega pantallas. Si la vista crece hasta volverse difícil de mantener, se puede reabrir esta decisión con otro ADR.
