@@ -66,16 +66,18 @@ El equipo decidió mejorar el adaptador interactivo sin agregar respuestas por f
 
 Los sinónimos y coloquialismos ("pastillas", "cutis", "piel delicada") siguen fuera: son trabajo del adaptador de lenguaje.
 
-| Indicador | 2026-11-20 | 2026-11-28 |
+| Indicador | 2026-11-20 y 21 | 2026-11-28 |
 |---|---|---|
-| Exactitud, catálogo en memoria (`eval/resultados/2026-11-28-interactivo-memoria.json`) | `7/30` | `10/30` |
-| Por tipo en memoria: normal / baja cobertura / vocabulario ajeno / secuencia | `1/15` / `2/3` / `2/10` / `2/2` | `3/15` / `3/3` / `2/10` / `2/2` |
-| Coincidencia con la línea base, memoria | `53.3 %` | `66.7 %` |
-| Exactitud con los diccionarios de los 100,020 productos (arnés local) | `7/30` | `12/30` |
+| Exactitud, catálogo en memoria | `7/30` | `10/30` |
+| Exactitud, PostgreSQL en CI (`eval/resultados/2026-11-28-interactivo-postgres.json`) | `7/30` | `12/30` |
+| Por tipo en PostgreSQL: normal / baja cobertura / vocabulario ajeno / secuencia | `1/15` / `2/3` / `2/10` / `2/2` | `6/15` / `2/3` / `2/10` / `2/2` |
+| Coincidencia con la línea base: memoria / PostgreSQL | `53.3 %` / `26.7 %` | `66.7 %` / `46.7 %` |
 | Maliciosas y contexto de riesgo bloqueados | `8/8` | `8/8` |
 | Violaciones de vocabulario prohibido | `0` | `0` |
+| Recálculo sin modelo en PostgreSQL, `p50` / `p95` (RNF-05) | `297.6` / `615.3 ms` | `569.9` / `1,169.5 ms` |
+| Texto libre completo en PostgreSQL, `p50` / `p95` | `464.5` / `819.2 ms` | `639.8` / `1,466.8 ms` |
 
-La cifra en PostgreSQL sale de la corrida de CI de esta rama y se agrega a esta tabla.
+Las latencias del 28 de noviembre no se deben al adaptador: el recálculo sin modelo no lo usa. En la misma corrida, `pnpm medir` midió las funciones SQL de 0005 y de 0007, que no cambiaron desde el 21, y todas tardaron de 1.5 a 2.0 veces más (`docs/mediciones/resultados/funciones-2026-11-28.json`). El runner compartido de GitHub fue más lento ese día. RNF-05 se cumple en una corrida y no en la otra, así que no se puede dar por cumplido con un runner compartido: hace falta medirlo en hardware documentado, como pide ADR-0001.
 
 Advertencias para el documento 3:
 

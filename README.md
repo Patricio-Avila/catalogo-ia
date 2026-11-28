@@ -9,7 +9,7 @@ Equipo: Carlos Patricio Avila Izaguirre, Valeria Hernández Hernández, Alejandr
 ## Estructura
 
 ```
-apps/web/          cliente Vite + TypeScript sin framework (ADR-0006, propuesta)
+apps/web/          cliente Vite + TypeScript sin framework (ADR-0006)
 packages/core/     validación, extractor numérico, adaptadores de modelo, acceso a datos
 supabase/          migraciones, seed, Edge Function (Hono), pruebas pgTAP
 eval/              banco de consultas, referencia SQL, arnés y resultados
