@@ -80,6 +80,22 @@ select is(jsonb_array_length(catalogo.obtener_verticales()), 3, 'tres verticales
 select is(catalogo.obtener_verticales() -> 0 ->> 'dominio', 'farmacia', 'farmacia primero');
 select isnt(catalogo.obtener_verticales() -> 0 ->> 'aviso', null, 'farmacia lleva aviso');
 
+-- G5: ningún aviso usa vocabulario prohibido (migración 0010). Mismo patrón que
+-- PATRON en packages/core/src/vocabulario.ts, sobre el texto sin acentos y con los
+-- espacios colapsados, como normalizarValor; \y es el límite de palabra de
+-- PostgreSQL (\b sería retroceso) y ~* no distingue mayúsculas.
+create function pg_temp.vocabulario_prohibido(p_texto text) returns boolean
+language sql immutable as $$
+  select regexp_replace(translate(coalesce(p_texto, ''), 'ÁÉÍÓÚÜÑáéíóúüñ', 'AEIOUUNaeiouun'), '\s+', ' ', 'g')
+    ~* '\y(igual(es)?|equivalentes?|sustitut[oa]s?|intercambiables?|recomendad[oa]s?|indicad[oa]s? para|dosis)\y'
+$$;
+select ok(pg_temp.vocabulario_prohibido('No indica usos ni DÓSIS'), 'el patrón detecta una palabra prohibida con mayúsculas y acento');
+select ok(pg_temp.vocabulario_prohibido('Producto  indicado   para la piel'), 'el patrón detecta "indicado para" con espacios de más');
+select ok(not pg_temp.vocabulario_prohibido('No recomienda productos ni da indicaciones de uso'), 'el patrón no marca palabras parecidas');
+select is(
+  (select count(*) from catalogo.vertical where pg_temp.vocabulario_prohibido(aviso)),
+  0::bigint, 'ningún aviso de vertical usa vocabulario prohibido');
+
 -- Refresco idempotente: la misma carga da la misma versión
 select is(
   (select version from catalogo.refrescar_diccionario() where dominio = 'belleza'),

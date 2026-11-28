@@ -4,6 +4,7 @@
 import { aplicarAccion } from "./acciones";
 import { DICCIONARIOS } from "./datos_prueba/diccionarios";
 import { FIXTURES_MODELO } from "./datos_prueba/fixtures_modelo";
+import { VERTICALES_PRUEBA } from "./datos_prueba/verticales";
 import { validarObjetoFiltros } from "./g1/validar";
 import { interpretarPeticion } from "./interpretar";
 import { AdaptadorFixtures } from "./modelo/fixtures";
@@ -72,6 +73,12 @@ describe("contrato: textos del núcleo limpios", () => {
     }
     expect(textos.length).toBeGreaterThan(5);
     for (const t of textos) expect(vocabularioProhibidoEn(t)).toEqual([]);
+  });
+
+  it("textos de las verticales de prueba, aviso incluido (espejo de catalogo.vertical)", () => {
+    for (const v of VERTICALES_PRUEBA) {
+      for (const t of [v.nombre, v.texto_ayuda, v.aviso ?? ""]) expect(vocabularioProhibidoEn(t)).toEqual([]);
+    }
   });
 
   it("valores de los diccionarios de prueba", () => {

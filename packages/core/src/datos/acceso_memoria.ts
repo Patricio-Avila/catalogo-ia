@@ -57,6 +57,8 @@ export class AccesoMemoria implements AccesoDatos {
       marca: e.producto.marca,
       precio: e.producto.precio,
       descripcion: e.producto.descripcion,
+      categoria: e.producto.categoria,
+      atributos: { ...e.producto.atributos },
       cumple: e.cumple,
       sin_dato: e.sin_dato,
     }));
