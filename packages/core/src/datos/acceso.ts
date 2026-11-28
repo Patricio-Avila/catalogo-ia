@@ -11,7 +11,7 @@
 //       → { dominio, version, categorias[], entradas[] } con la forma de contrato/diccionario
 //   catalogo.buscar_productos(p_dominio text, p_categoria text, p_filtros jsonb,
 //       p_incluir_sin_dato boolean, p_limite int)
-//       returns table (id, nombre, marca, precio, descripcion, cumple text[], sin_dato text[])
+//       returns table (id, nombre, marca, precio, descripcion, categoria, atributos jsonb, cumple text[], sin_dato text[])
 //   catalogo.contar_productos(p_dominio, p_categoria, p_filtros, p_incluir_sin_dato)
 //       returns table (total bigint, faltantes bigint)
 //   catalogo.calcular_facetas(p_dominio, p_categoria, p_filtros, p_incluir_sin_dato, p_atributos text[])
@@ -218,7 +218,7 @@ export class AccesoPostgres implements AccesoDatos {
       const categoria = p.texto(objeto.categoria);
       return Promise.all([
         sql<Record<string, unknown>[]>`
-          select id, nombre, marca, precio::float8 as precio, descripcion, cumple, sin_dato
+          select id, nombre, marca, precio::float8 as precio, descripcion, categoria, atributos, cumple, sin_dato
           from catalogo.buscar_productos(${dominio}, ${categoria}, ${filtros}, ${objeto.incluir_sin_dato}, ${p.entero(tope)})`,
         sql<{ total: string | number; faltantes: string | number }[]>`
           select total, faltantes

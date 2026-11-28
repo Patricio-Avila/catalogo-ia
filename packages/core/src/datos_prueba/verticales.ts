@@ -1,5 +1,6 @@
 // Configuración de verticales de prueba: espejo de lo que inserta la migración
-// 20261102160200_atributo_meta_y_trigger.sql en catalogo.vertical y catalogo.categoria.
+// 20261102160200_atributo_meta_y_trigger.sql en catalogo.vertical y catalogo.categoria,
+// con el aviso de farmacia que fija 20261128120000_ficha_producto_y_aviso.sql.
 
 import type { Vertical } from "../contrato/diccionario";
 
@@ -9,7 +10,7 @@ export const VERTICALES_PRUEBA: Vertical[] = [
     nombre: "Farmacia",
     texto_ayuda: "Busca por sustancia, concentración, forma farmacéutica, presentación o precio.",
     aviso:
-      "Este catálogo solo permite buscar productos. No recomienda, no sustituye ni indica usos ni dosis. Consulta a un profesional de la salud.",
+      "Este catálogo solo permite buscar productos. No recomienda productos, no sugiere cambios entre ellos ni da indicaciones de uso. Consulta a un profesional de la salud.",
     atributos_destacados: ["sustancia_activa", "concentracion_mg", "forma_farmaceutica", "piezas"],
     version_diccionario: "prueba-1",
     categorias: [

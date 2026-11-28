@@ -63,6 +63,10 @@ select is(
    where n.nspname in ('catalogo', 'servicio') and p.prosecdef),
   true, 'toda función SECURITY DEFINER es de catalogo_duenio');
 
+-- La migración 0010 borra y vuelve a crear buscar_productos: los permisos se reponen
+select is(has_function_privilege('public', 'catalogo.buscar_productos(text, text, jsonb, boolean, integer)', 'execute'), false, 'PUBLIC no ejecuta buscar_productos (migración 0010)');
+select is(has_function_privilege('agente_lectura', 'catalogo.buscar_productos(text, text, jsonb, boolean, integer)', 'execute'), true, 'agente_lectura ejecuta buscar_productos (migración 0010)');
+
 -- G4: tope de filas dentro de la función aunque el parámetro pida más (RNF-04)
 select cmp_ok((select count(*) from catalogo.buscar_productos('belleza', null, '[]'::jsonb, true, 100000)), '<=', 200::bigint, 'buscar_productos nunca devuelve más de 200 filas');
 select is((select count(*) from catalogo.buscar_productos('belleza', null, '[]'::jsonb, true, null)), 20::bigint, 'límite por omisión 20');

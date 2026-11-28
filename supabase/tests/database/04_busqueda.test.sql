@@ -1,6 +1,7 @@
 -- RF-05 (motivo calculado en SQL), RF-06 (conteo de faltantes contra consulta
 -- independiente), RF-07 (facetas sobre el conjunto resultante), G2 (fragmentos SQL
--- en valores) y operadores numéricos.
+-- en valores), operadores numéricos y ficha del producto (categoria y atributos,
+-- migración 0010).
 begin;
 create extension if not exists pgtap with schema extensions;
 set local search_path = public, extensions;
@@ -67,8 +68,40 @@ select is(
   (select bool_and(en_orden) from (
      select precio >= coalesce(lag(precio) over (order by n), 0) as en_orden
      from catalogo.buscar_productos('belleza', 'cuidado_facial', (select f from filtros_ref), false, 50)
-       with ordinality as r(id, nombre, marca, precio, descripcion, cumple, sin_dato, n)) s),
+       with ordinality as r(id, nombre, marca, precio, descripcion, categoria, atributos, cumple, sin_dato, n)) s),
   true, 'resultados estrictos ordenados por precio');
+
+-- Ficha del producto (migración 0010): columnas en el orden del contrato y
+-- categoria y atributos idénticos a los de producto, con las claves ausentes tal cual
+select is(
+  (select array_agg(a.nombre order by a.n)
+   from pg_proc p, unnest(p.proargnames, p.proargmodes) with ordinality as a(nombre, modo, n)
+   where p.oid = 'catalogo.buscar_productos(text, text, jsonb, boolean, integer)'::regprocedure
+     and a.modo = 't'),
+  array['id', 'nombre', 'marca', 'precio', 'descripcion', 'categoria', 'atributos', 'cumple', 'sin_dato'],
+  'buscar_productos devuelve las columnas del contrato en ese orden');
+
+create temp table ficha as
+select 'belleza' as caso, r.id, r.categoria, r.atributos, r.sin_dato
+from catalogo.buscar_productos('belleza', null, (select f from filtros_ref), true, 200) r
+union all
+select 'llantas', r.id, r.categoria, r.atributos, r.sin_dato
+from catalogo.buscar_productos('llantas', 'pasajeros', '[]'::jsonb, false, 50) r
+union all
+select 'sin_fragancia', r.id, r.categoria, r.atributos, r.sin_dato
+from catalogo.buscar_productos('belleza', 'cuidado_facial', '[{"atributo":"fragancia","operador":"=","valor":"inexistente"}]'::jsonb, true, 200) r;
+
+select cmp_ok((select count(*) from ficha where caso = 'belleza'), '>', 0::bigint, 'ficha: hay resultados en belleza');
+select cmp_ok((select count(*) from ficha where caso = 'llantas'), '>', 0::bigint, 'ficha: hay resultados en llantas');
+select cmp_ok((select count(*) from ficha where caso = 'sin_fragancia'), '>', 0::bigint, 'ficha: hay productos sin fragancia');
+select is(
+  (select count(*) from ficha f
+   join catalogo.producto p on p.id = f.id
+   where f.categoria is distinct from p.categoria or f.atributos is distinct from p.atributos),
+  0::bigint, 'categoria y atributos de cada resultado iguales a los de producto');
+select is(
+  (select bool_and(not (f.atributos ? 'fragancia') and f.sin_dato = array['fragancia']) from ficha f where f.caso = 'sin_fragancia'),
+  true, 'la ficha no rellena el dato faltante: la clave sigue ausente');
 
 -- Sin filtros: toda la categoría cuenta y cumple = {}
 select is((select total from catalogo.contar_productos('belleza', 'cuidado_facial', '[]'::jsonb, false)), (select count(*) from catalogo.producto where dominio = 'belleza' and categoria = 'cuidado_facial'), 'sin filtros, total = categoría');

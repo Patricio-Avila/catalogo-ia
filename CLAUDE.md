@@ -197,7 +197,7 @@ Reglas del flujo:
 `POST /buscar`
 
 - Entrada: `{ dominio: "farmacia" | "llantas" | "belleza", texto?: string, accion?: { tipo: "quitar" | "faceta" | "incluir_sin_dato" | "reiniciar", ... }, filtros_vigentes: ObjetoFiltros | null, limite?: number }`. Exactamente uno de `texto` o `accion`.
-- Salida: `{ filtros: ObjetoFiltros, etiquetas: [{ atributo, operador, valor, confianza, origen: "modelo" | "usuario" | "cache" }], descartados: [...], resultados: [{ id, nombre, marca, precio, descripcion, cumple: string[], sin_dato: string[] }], total, faltantes, facetas: [{ atributo, valores: [{ valor, productos }] }], aclaracion?: { pregunta, opciones: [...] } }`.
+- Salida: `{ filtros: ObjetoFiltros, etiquetas: [{ atributo, operador, valor, confianza, origen: "modelo" | "usuario" | "cache" }], descartados: [...], resultados: [{ id, nombre, marca, precio, descripcion, categoria, atributos: { [atributo]: string | number | boolean }, cumple: string[], sin_dato: string[] }], total, faltantes, facetas: [{ atributo, valores: [{ valor, productos }] }], aclaracion?: { pregunta, opciones: [...] } }`.
 
 `POST /facetas`
 
@@ -253,6 +253,8 @@ Al 2026-11-20 (revisión): ocho migraciones. La 0007 agrega `filtrar_productos` 
 - El peor `/buscar` (5 filtros con faltantes) suma 1.13 s.
 
 Detalle en `docs/mediciones/t8_resultados.md` §3.3.
+
+Al 2026-11-28: diez migraciones. La 0009 (2026-11-22) sube el `statement_timeout` del agente a 5 s por la latencia de la base en la nube; la meta de RNF-05 no cambia. La 0010 hace que `buscar_productos` devuelva `categoria` y `atributos` para la ficha del producto (la categoría sale de `producto` solo para la página devuelta; `filtrar_productos` no cambia) y quita «dosis» del aviso de farmacia; `03_diccionario` verifica que ningún aviso case con el vocabulario prohibido.
 
 ### 7.3 Lo que el documento 2 debe producir
 

@@ -9,11 +9,9 @@ import {
   AdaptadorInteractivo,
   crearApp,
   FIXTURES_DEMO,
-  PRODUCTOS_PRUEBA,
   type Diccionario,
   type Dominio,
   type PeticionBuscar,
-  type ProductoCatalogo,
   type RespuestaBuscar,
   type Vertical,
 } from "@catalogo-ia/core";
@@ -22,8 +20,8 @@ export interface ClienteCatalogo {
   readonly modo: "remoto" | "local";
   obtenerVerticales(): Promise<Vertical[]>;
   obtenerDiccionario(dominio: Dominio): Promise<Diccionario>;
+  /** Cada resultado trae su categoría y sus atributos: la ficha del producto sale de aquí. */
   buscar(peticion: PeticionBuscar): Promise<RespuestaBuscar>;
-  obtenerProductoLocal(id: number): ProductoCatalogo | undefined;
 }
 
 export function crearClienteLocal(): ClienteCatalogo {
@@ -56,9 +54,6 @@ export function crearClienteLocal(): ClienteCatalogo {
       });
       if (!r.ok) throw new Error("Error al ejecutar la búsqueda");
       return (await r.json()) as RespuestaBuscar;
-    },
-    obtenerProductoLocal(id: number): ProductoCatalogo | undefined {
-      return PRODUCTOS_PRUEBA.find((p) => p.id === id);
     },
   };
 }
@@ -107,11 +102,6 @@ export function crearClienteHttp(urlBase: string, claveAnon?: string, opciones: 
       );
       if (!r.ok) throw new Error("Error al ejecutar la búsqueda");
       return (await r.json()) as RespuestaBuscar;
-    },
-    // Con la API los ids son de la base, no del catálogo de prueba: buscarlos ahí
-    // mostraría los atributos de otro producto. El detalle usa lo que devolvió /buscar.
-    obtenerProductoLocal(): ProductoCatalogo | undefined {
-      return undefined;
     },
   };
 }

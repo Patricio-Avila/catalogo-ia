@@ -10,6 +10,13 @@ export const Resultado = z.object({
   marca: z.string(),
   precio: z.number(),
   descripcion: z.string(),
+  /** Categoría del producto dentro de la vertical. */
+  categoria: z.string(),
+  /**
+   * Atributos del producto tal como están en la base (clave ausente = sin dato).
+   * Los muestra la ficha del producto; el motivo sigue siendo cumple/sin_dato.
+   */
+  atributos: z.record(z.string(), z.union([z.string(), z.number(), z.boolean()])),
   /** Filtros que cumple, calculados en SQL (RF-05). */
   cumple: z.array(NombreAtributo),
   /** Atributos del filtro sin dato en este producto (RF-05). */

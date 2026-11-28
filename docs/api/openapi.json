@@ -923,6 +923,25 @@
                           "descripcion": {
                             "type": "string"
                           },
+                          "categoria": {
+                            "type": "string"
+                          },
+                          "atributos": {
+                            "type": "object",
+                            "additionalProperties": {
+                              "anyOf": [
+                                {
+                                  "type": "string"
+                                },
+                                {
+                                  "type": "number"
+                                },
+                                {
+                                  "type": "boolean"
+                                }
+                              ]
+                            }
+                          },
                           "cumple": {
                             "type": "array",
                             "items": {
@@ -948,6 +967,8 @@
                           "marca",
                           "precio",
                           "descripcion",
+                          "categoria",
+                          "atributos",
                           "cumple",
                           "sin_dato"
                         ]
