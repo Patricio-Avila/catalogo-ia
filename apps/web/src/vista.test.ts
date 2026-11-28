@@ -57,7 +57,7 @@ describe("Cliente y vista web (T5)", () => {
     const { cliente, llamadas } = clienteEspia();
     const ctrl = await iniciarAplicacion(contenedor, cliente);
 
-    expect(ctrl.estado.verticales).toHaveLength(3);
+    expect(ctrl.estado.verticales.map((v) => v.dominio)).toEqual(["belleza", "farmacia"]);
     expect(ctrl.estado.dominioActual).toBe("belleza");
     expect(llamadas).toHaveLength(0);
     expect(ctrl.estado.respuesta).toBeNull();
@@ -66,6 +66,22 @@ describe("Cliente y vista web (T5)", () => {
     expect(contenedor.innerHTML).toContain('data-ejemplo="protector solar vegano"');
     expect(contenedor.innerHTML).not.toContain('data-testid="sin-resultados"');
     expect(contenedor.innerHTML).toContain("Selecciona un producto para ver su ficha");
+  });
+
+  it("el selector muestra Belleza primero y no ofrece Llantas", async () => {
+    const contenedor = crearContenedorPrueba();
+    const { cliente, llamadas } = clienteEspia();
+    const ctrl = await iniciarAplicacion(contenedor, cliente);
+
+    const html = contenedor.innerHTML;
+    expect(html).not.toContain('data-dominio="llantas"');
+    expect(html.indexOf('data-dominio="belleza"')).toBeGreaterThan(-1);
+    expect(html.indexOf('data-dominio="belleza"')).toBeLessThan(html.indexOf('data-dominio="farmacia"'));
+
+    // Una vertical oculta no se puede cargar desde el controlador.
+    await ctrl.cambiarVertical("llantas");
+    expect(ctrl.estado.dominioActual).toBe("belleza");
+    expect(llamadas).toHaveLength(0);
   });
 
   it("carga la pantalla principal con etiquetas, facetas, resultados y faltantes", async () => {
@@ -111,7 +127,7 @@ describe("Cliente y vista web (T5)", () => {
     ctrl.seleccionarProducto(1);
     expect(llamadas).toHaveLength(1);
 
-    const pendiente = ctrl.cambiarVertical("llantas");
+    const pendiente = ctrl.cambiarVertical("farmacia");
     // Mientras carga: sin resultados de belleza y con estado de carga, no "sin resultados".
     expect(contenedor.innerHTML).not.toContain("Crema facial hidratante 50 ml");
     expect(contenedor.innerHTML).toContain("Cargando la vertical…");
@@ -122,7 +138,7 @@ describe("Cliente y vista web (T5)", () => {
     expect(ctrl.estado.respuesta).toBeNull();
     expect(ctrl.estado.productoDetalleId).toBeNull();
     expect(contenedor.innerHTML).toContain('data-testid="invitacion"');
-    expect(contenedor.innerHTML).toContain('data-ejemplo="llanta 205/55 R16 para carretera"');
+    expect(contenedor.innerHTML).toContain('data-ejemplo="paracetamol en tabletas"');
     expect(contenedor.innerHTML).not.toContain('data-testid="panel-detalle"');
   });
 
@@ -207,7 +223,7 @@ describe("Cliente y vista web (T5)", () => {
     const contenedor = crearContenedorPrueba();
     const ctrl = await iniciarAplicacion(contenedor, crearClienteLocal());
 
-    for (const dom of ["belleza", "farmacia", "llantas"] as const) {
+    for (const dom of ["belleza", "farmacia"] as const) {
       await ctrl.cambiarVertical(dom);
       await ctrl.ejecutarAccion({ tipo: "reiniciar" });
       const resultados = ctrl.estado.respuesta?.resultados ?? [];

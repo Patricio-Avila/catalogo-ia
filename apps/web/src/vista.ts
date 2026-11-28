@@ -71,6 +71,13 @@ const SIN_SEPARADOR_MILES = new Set(["anio_fabricacion"]);
 /** Columnas fijas del producto: la ficha las muestra arriba, no entre los atributos. */
 const COLUMNAS_FIJAS = new Set(["precio", "marca"]);
 
+/**
+ * Verticales que muestra la demo, en este orden; la primera es la de inicio.
+ * Llantas sigue en la base, la API y la evaluación, solo no se ofrece en la web.
+ * Para volver a mostrarla basta con agregarla aquí.
+ */
+export const VERTICALES_VISIBLES: readonly Dominio[] = ["belleza", "farmacia"];
+
 const EJEMPLOS_POR_DOMINIO: Record<Dominio, string[]> = {
   belleza: [
     "crema sin perfume para piel sensible de menos de 300 pesos",
@@ -280,6 +287,7 @@ export async function iniciarAplicacion(
   let turno = 0;
 
   async function cargarVertical(dominio: Dominio): Promise<void> {
+    if (!estado.verticales.some((v) => v.dominio === dominio)) return;
     const mio = ++turno;
     estado.dominioActual = dominio;
     estado.diccionario = null;
@@ -642,8 +650,9 @@ export async function iniciarAplicacion(
     });
   }
 
-  estado.verticales = await cliente.obtenerVerticales();
-  await cargarVertical("belleza");
+  const todas = await cliente.obtenerVerticales();
+  estado.verticales = VERTICALES_VISIBLES.flatMap((d) => todas.filter((v) => v.dominio === d));
+  await cargarVertical(estado.verticales[0]?.dominio ?? "belleza");
 
   return {
     estado,
