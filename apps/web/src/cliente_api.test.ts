@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { crearClienteHttp } from "./cliente_api";
+import { crearClienteHttp, crearClienteLocal } from "./cliente_api";
 
 const respuesta = (status: number, cuerpo: unknown) =>
   new Response(JSON.stringify(cuerpo), { status, headers: { "content-type": "application/json" } });
@@ -45,5 +45,31 @@ describe("cliente HTTP: reintento único ante 503 (enmienda de ADR-0002)", () =>
     const { fetchFalso, cliente } = clienteCon(respuesta(503, BASE_NO_DISPONIBLE), respuesta(200, { dominio: "belleza" }));
     await expect(cliente.obtenerDiccionario("belleza")).resolves.toEqual({ dominio: "belleza" });
     expect(fetchFalso).toHaveBeenCalledTimes(2);
+  });
+});
+
+describe("la ficha del producto sale de /buscar, no de un catálogo local", () => {
+  afterEach(() => vi.unstubAllGlobals());
+
+  it("el cliente HTTP entrega categoría y atributos tal como los manda la API", async () => {
+    const producto = { id: 7, categoria: "pasajeros", atributos: { ancho_mm: 205, run_flat: true } };
+    const { cliente } = clienteCon(respuesta(200, { resultados: [producto] }));
+    const r = await cliente.buscar({ dominio: "llantas", accion: { tipo: "reiniciar" }, filtros_vigentes: null });
+    expect(r.resultados[0]).toEqual(producto);
+    expect("obtenerProductoLocal" in cliente).toBe(false);
+  });
+
+  it("el cliente local llena categoría y atributos; una clave ausente es sin dato", async () => {
+    const cliente = crearClienteLocal();
+    expect("obtenerProductoLocal" in cliente).toBe(false);
+    const r = await cliente.buscar({ dominio: "belleza", accion: { tipo: "reiniciar" }, filtros_vigentes: null });
+    expect(r.resultados.length).toBeGreaterThan(0);
+    for (const x of r.resultados) {
+      expect(["cuidado_facial", "cuidado_corporal"]).toContain(x.categoria);
+      expect(typeof x.atributos).toBe("object");
+    }
+    const crema = r.resultados.find((x) => x.id === 1);
+    expect(crema?.atributos.tipo_piel).toBe("sensible");
+    expect(crema && "spf" in crema.atributos).toBe(false);
   });
 });

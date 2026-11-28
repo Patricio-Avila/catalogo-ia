@@ -8,6 +8,8 @@
   --color-texto-sec: #475569;
   --color-primario: #1d4ed8;
   --color-primario-hover: #1e40af;
+  --color-foco: #1d4ed8;
+  --color-seleccion-bg: #eff6ff;
   --color-etiqueta-bg: #dbeafe;
   --color-etiqueta-borde: #3b82f6;
   --color-etiqueta-texto: #1e3a8a;
@@ -39,8 +41,32 @@ body {
   line-height: 1.45;
 }
 
+/* Con la ficha abierta como diálogo, la página de atrás no se desplaza. */
+body:has(.dialogo-ficha[open]) {
+  overflow: hidden;
+}
+
+/* Foco visible en todo control: anillo de 3 px con contraste alto. */
+:focus-visible {
+  outline: 3px solid var(--color-foco);
+  outline-offset: 2px;
+}
+
+/* Solo para lectores de pantalla (región viva). */
+.solo-lectores {
+  position: absolute !important;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+
 .contenedor-principal {
-  max-width: 1080px;
+  max-width: 1440px;
   margin: 1.25rem auto;
   padding: 0 1rem;
 }
@@ -49,7 +75,8 @@ body {
   background: var(--color-panel);
   border: 1.5px solid var(--color-borde);
   border-radius: 12px;
-  overflow: hidden;
+  /* clip y no hidden: hidden rompería position: sticky de la columna de la ficha. */
+  overflow: clip;
   box-shadow: 0 2px 8px rgba(15, 23, 42, 0.05);
 }
 
@@ -79,10 +106,13 @@ body {
   gap: 0.6rem;
   font-size: 0.85rem;
   color: var(--color-texto-sec);
+  max-width: 100%;
 }
 
 .selector-vertical {
   display: inline-flex;
+  flex-wrap: wrap;
+  max-width: 100%;
   background: #e2e8f0;
   padding: 0.2rem;
   border-radius: 8px;
@@ -93,6 +123,7 @@ body {
   border: none;
   background: transparent;
   padding: 0.35rem 0.75rem;
+  min-height: 32px;
   border-radius: 6px;
   font-size: 0.85rem;
   font-weight: 600;
@@ -137,28 +168,31 @@ body {
   display: flex;
   gap: 0.6rem;
   margin-bottom: 0.6rem;
+  max-width: 100%;
 }
 
 .campo-busqueda {
-  flex: 1;
+  flex: 1 1 0;
+  min-width: 0;
+  min-height: 40px;
   padding: 0.65rem 0.9rem;
   font-size: 0.95rem;
   border: 1.5px solid #475569;
   border-radius: 8px;
-  outline: none;
 }
 
 .campo-busqueda:focus {
   border-color: var(--color-primario);
-  box-shadow: 0 0 0 3px rgba(29, 78, 216, 0.15);
 }
 
 .btn-buscar {
+  flex: 0 0 auto;
+  min-height: 40px;
   background: var(--color-primario);
   color: #ffffff;
   border: none;
   border-radius: 8px;
-  padding: 0 1.35rem;
+  padding: 0 1.2rem;
   font-size: 0.95rem;
   font-weight: 600;
   cursor: pointer;
@@ -184,8 +218,10 @@ body {
   border: 1px solid var(--color-borde);
   color: var(--color-texto-sec);
   border-radius: 999px;
-  padding: 0.2rem 0.6rem;
-  font-size: 0.76rem;
+  padding: 0.2rem 0.65rem;
+  min-height: 28px;
+  font-size: 0.78rem;
+  text-align: left;
   cursor: pointer;
 }
 
@@ -215,7 +251,8 @@ body {
   display: inline-flex;
   align-items: center;
   gap: 0.4rem;
-  padding: 0.28rem 0.65rem;
+  max-width: 100%;
+  padding: 0.2rem 0.3rem 0.2rem 0.65rem;
   border-radius: 999px;
   background: var(--color-etiqueta-bg);
   border: 1.5px solid var(--color-etiqueta-borde);
@@ -236,14 +273,24 @@ body {
 }
 
 .btn-quitar-etiqueta {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 24px;
+  min-height: 24px;
   background: none;
   border: none;
+  border-radius: 50%;
   color: inherit;
-  font-size: 0.95rem;
+  font-size: 1rem;
   line-height: 1;
-  padding: 0 0.1rem;
+  padding: 0;
   cursor: pointer;
   font-weight: 700;
+}
+
+.btn-quitar-etiqueta:hover {
+  background: rgba(15, 23, 42, 0.08);
 }
 
 .btn-accion-secundaria {
@@ -251,7 +298,8 @@ body {
   border: 1px dashed var(--color-borde);
   color: var(--color-texto-sec);
   border-radius: 999px;
-  padding: 0.25rem 0.65rem;
+  padding: 0.25rem 0.75rem;
+  min-height: 28px;
   font-size: 0.8rem;
   cursor: pointer;
 }
@@ -261,12 +309,24 @@ body {
   color: var(--color-primario);
 }
 
+.btn-enlace {
+  background: none;
+  border: none;
+  padding: 0;
+  min-height: 24px;
+  font: inherit;
+  color: var(--color-primario);
+  text-decoration: underline;
+  cursor: pointer;
+}
+
 /* Panel de agregar filtro manual (RF-10) */
 .panel-manual {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   gap: 0.5rem;
+  max-width: 100%;
   background: var(--color-panel-alt);
   border: 1px solid var(--color-borde);
   border-radius: 8px;
@@ -277,6 +337,9 @@ body {
 
 .panel-manual select,
 .panel-manual input {
+  max-width: 100%;
+  min-width: 0;
+  min-height: 32px;
   padding: 0.35rem 0.5rem;
   border: 1px solid var(--color-borde);
   border-radius: 6px;
@@ -290,9 +353,16 @@ body {
   border: none;
   border-radius: 6px;
   padding: 0.38rem 0.75rem;
+  min-height: 32px;
   font-size: 0.82rem;
   font-weight: 600;
   cursor: pointer;
+}
+
+.pista-rango {
+  flex-basis: 100%;
+  font-size: 0.78rem;
+  color: var(--color-texto-sec);
 }
 
 /* Bloques de aclaración y descartes (G1) */
@@ -306,6 +376,11 @@ body {
   margin-bottom: 0.75rem;
 }
 
+.bloque-descartados ul {
+  margin: 0.35rem 0 0;
+  padding-left: 1.2rem;
+}
+
 .bloque-aclaracion {
   background: #eff6ff;
   border: 1px solid #93c5fd;
@@ -314,6 +389,10 @@ body {
   padding: 0.75rem 0.95rem;
   font-size: 0.86rem;
   margin-bottom: 0.75rem;
+}
+
+.aclaracion-pregunta {
+  margin: 0;
 }
 
 .opciones-aclaracion {
@@ -329,6 +408,7 @@ body {
   color: #1d4ed8;
   border-radius: 6px;
   padding: 0.3rem 0.65rem;
+  min-height: 32px;
   font-size: 0.8rem;
   font-weight: 600;
   cursor: pointer;
@@ -354,14 +434,15 @@ body {
   display: inline-flex;
   align-items: center;
   gap: 0.45rem;
+  min-height: 28px;
   cursor: pointer;
   user-select: none;
   color: var(--color-texto);
 }
 
 .casilla-sin-dato input {
-  width: 1rem;
-  height: 1rem;
+  width: 1.15rem;
+  height: 1.15rem;
   cursor: pointer;
 }
 
@@ -379,17 +460,91 @@ body {
   border: 1px solid var(--color-borde);
 }
 
-/* Rejilla de 2 columnas: Facetas y Resultados */
+/*
+ * Rejilla: facetas | resultados | ficha.
+ *   < 900 px: resultados y debajo las facetas plegables; la ficha abre como diálogo.
+ *   900–1199 px: facetas plegables sobre los resultados y ficha de 360 px a la derecha.
+ *   ≥ 1200 px: tres columnas; la ficha queda fija mientras se recorre la lista.
+ */
 .rejilla-contenido {
   display: grid;
-  grid-template-columns: 235px 1fr;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-areas:
+    "resultados"
+    "facetas";
   gap: 1.1rem;
   align-items: start;
 }
 
-@media (max-width: 720px) {
+.zona-facetas {
+  grid-area: facetas;
+  min-width: 0;
+}
+
+.columna-resultados {
+  grid-area: resultados;
+  min-width: 0;
+}
+
+.columna-detalle {
+  grid-area: detalle;
+  display: none;
+  min-width: 0;
+}
+
+@media (min-width: 900px) {
   .rejilla-contenido {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr) 360px;
+    /* La fila 2 absorbe la altura de la ficha para no separar facetas y resultados. */
+    grid-template-rows: auto 1fr;
+    grid-template-areas:
+      "facetas detalle"
+      "resultados detalle";
+  }
+
+  .columna-detalle {
+    display: block;
+    position: sticky;
+    top: 1rem;
+    align-self: start;
+    max-height: calc(100vh - 2rem);
+    max-height: calc(100dvh - 2rem);
+    overflow: auto;
+    overscroll-behavior: contain;
+  }
+}
+
+@media (min-width: 1200px) {
+  .rejilla-contenido {
+    grid-template-columns: 240px minmax(0, 1fr) clamp(340px, 28vw, 420px);
+    grid-template-rows: auto;
+    grid-template-areas: "facetas resultados detalle";
+  }
+
+  .resumen-facetas {
+    display: none;
+  }
+}
+
+/* Facetas plegables (< 1200 px) */
+.resumen-facetas {
+  min-height: 44px;
+  padding: 0.7rem 0.9rem;
+  border: 1px solid var(--color-borde);
+  border-radius: 8px;
+  background: var(--color-panel-alt);
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.zona-facetas[open] > .resumen-facetas {
+  margin-bottom: 0.5rem;
+}
+
+@media (max-width: 1199.98px) {
+  .titulo-panel-facetas {
+    display: none;
   }
 }
 
@@ -434,7 +589,9 @@ body {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 0.5rem;
   width: 100%;
+  min-height: 28px;
   text-align: left;
   background: transparent;
   border: 1px solid transparent;
@@ -450,9 +607,47 @@ body {
   color: var(--color-texto);
 }
 
+.btn-valor-faceta[aria-pressed="true"] {
+  background: var(--color-etiqueta-bg);
+  border-color: var(--color-etiqueta-borde);
+  color: var(--color-etiqueta-texto);
+  font-weight: 600;
+}
+
 .btn-valor-faceta.es-sin-dato {
   font-style: italic;
   color: var(--color-sin-dato);
+}
+
+/* Estado de carga */
+.estado-carga {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0 0 0.6rem;
+  font-size: 0.86rem;
+  color: var(--color-texto-sec);
+}
+
+.indicador-carga {
+  width: 1rem;
+  height: 1rem;
+  border: 2px solid var(--color-borde);
+  border-top-color: var(--color-primario);
+  border-radius: 50%;
+  animation: girar 0.8s linear infinite;
+}
+
+@keyframes girar {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .indicador-carga {
+    animation: none;
+  }
 }
 
 /* Lista de resultados */
@@ -461,9 +656,19 @@ body {
   border-radius: 8px;
   background: #ffffff;
   overflow: hidden;
+  transition: opacity 0.15s ease;
+}
+
+.lista-resultados:empty {
+  display: none;
+}
+
+.lista-resultados.atenuada {
+  opacity: 0.55;
 }
 
 .tarjeta-producto {
+  position: relative;
   padding: 0.85rem 1rem;
   border-bottom: 1px solid var(--color-borde-suave);
   cursor: pointer;
@@ -478,6 +683,12 @@ body {
   background: #f8fafc;
 }
 
+/* Tarjeta elegida: fondo suave y barra interior de 4 px. */
+.tarjeta-producto[aria-current="true"] {
+  background: var(--color-seleccion-bg);
+  box-shadow: inset 4px 0 0 var(--color-primario);
+}
+
 .tarjeta-cabecera {
   display: flex;
   justify-content: space-between;
@@ -489,6 +700,34 @@ body {
   font-size: 0.96rem;
   font-weight: 700;
   margin: 0;
+}
+
+/* El botón cubre toda la tarjeta: se abre con clic, toque o teclado. */
+.tarjeta-abrir {
+  background: none;
+  border: none;
+  padding: 0;
+  margin: 0;
+  font: inherit;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.tarjeta-abrir::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+}
+
+.tarjeta-abrir:focus-visible {
+  outline: none;
+}
+
+.tarjeta-abrir:focus-visible::after {
+  outline: 3px solid var(--color-foco);
+  outline-offset: -3px;
 }
 
 .tarjeta-precio {
@@ -527,36 +766,275 @@ body {
   font-weight: 500;
 }
 
-/* Detalle de producto seleccionado */
+/* Invitación al entrar a una vertical (sin búsqueda automática) */
+.invitacion {
+  padding: 1.4rem 1.25rem;
+}
+
+.invitacion-titulo {
+  font-size: 1.02rem;
+  margin: 0 0 0.35rem;
+}
+
+.invitacion p {
+  margin: 0 0 0.6rem;
+  font-size: 0.88rem;
+  color: var(--color-texto-sec);
+}
+
+.invitacion-ejemplos {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 0.9rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+}
+
+.invitacion .btn-ejemplo {
+  min-height: 32px;
+  padding: 0.3rem 0.8rem;
+  font-size: 0.85rem;
+  color: var(--color-texto);
+}
+
+/* Ficha del producto */
+.detalle-vacio {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 160px;
+  padding: 1.25rem;
+  border: 1.5px dashed var(--color-borde);
+  border-radius: 8px;
+  color: var(--color-texto-sec);
+  font-size: 0.86rem;
+  text-align: center;
+}
+
+.detalle-vacio p {
+  margin: 0;
+}
+
 .panel-detalle {
-  margin-top: 0.9rem;
-  padding: 0.9rem 1rem;
-  background: var(--color-panel-alt);
+  padding: 0.9rem 1rem 1rem;
+  background: var(--color-panel);
   border: 1px solid var(--color-borde);
   border-radius: 8px;
   font-size: 0.84rem;
 }
 
-.panel-detalle-cabecera {
+.ficha-cabecera {
   display: flex;
   justify-content: space-between;
+  align-items: flex-start;
+  gap: 0.5rem;
+}
+
+.ficha-titulo {
+  margin: 0;
+  font-size: 1.08rem;
+  line-height: 1.3;
+}
+
+.btn-cerrar-ficha {
+  flex: 0 0 auto;
+  display: inline-flex;
   align-items: center;
-  margin-bottom: 0.5rem;
-}
-
-.rejilla-atributos {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-  gap: 0.4rem;
-  margin-top: 0.5rem;
-}
-
-.celda-atributo {
-  background: #ffffff;
-  border: 1px solid var(--color-borde-suave);
+  justify-content: center;
+  min-width: 32px;
+  min-height: 32px;
+  margin: -0.25rem -0.4rem 0 0;
+  background: transparent;
+  border: 1px solid transparent;
   border-radius: 6px;
-  padding: 0.35rem 0.55rem;
+  color: var(--color-texto-sec);
+  font-size: 1.35rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.btn-cerrar-ficha:hover {
+  background: var(--color-panel-alt);
+  border-color: var(--color-borde);
+  color: var(--color-texto);
+}
+
+.ficha-resumen {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 0.2rem 0.9rem;
+  margin: 0.7rem 0 0;
+}
+
+.ficha-resumen > div {
+  display: contents;
+}
+
+.ficha-resumen dt {
+  color: var(--color-texto-sec);
+}
+
+.ficha-resumen dd {
+  margin: 0;
+  font-weight: 600;
+}
+
+.ficha-precio {
+  font-size: 1rem;
+}
+
+.ficha-aviso {
+  margin: 0.8rem 0 0;
+}
+
+.ficha-seccion {
+  margin-top: 0.9rem;
+  padding-top: 0.7rem;
+  border-top: 1px solid var(--color-borde-suave);
+}
+
+.ficha-seccion h3 {
+  margin: 0 0 0.4rem;
+  font-size: 0.86rem;
+}
+
+.ficha-seccion h3:not(:first-child) {
+  margin-top: 0.6rem;
+}
+
+.lista-chips {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+
+.chip {
+  padding: 0.15rem 0.6rem;
+  border: 1px solid;
+  border-radius: 999px;
   font-size: 0.78rem;
+}
+
+.chip-cumple {
+  color: var(--color-cumple);
+  background: #f0fdf4;
+  border-color: #86efac;
+}
+
+.chip-sin-dato {
+  color: var(--color-sin-dato);
+  background: var(--color-descarte-bg);
+  border-color: var(--color-descarte-borde);
+}
+
+.lista-atributos {
+  margin: 0;
+}
+
+.fila-atributo {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 0.75rem;
+  padding: 0.3rem 0;
+  border-bottom: 1px dashed var(--color-borde-suave);
+  font-size: 0.82rem;
+}
+
+.fila-atributo:last-child {
+  border-bottom: none;
+}
+
+.fila-atributo dt {
+  color: var(--color-texto-sec);
+}
+
+.fila-atributo dd {
+  margin: 0;
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.fila-atributo.es-sin-dato dd {
+  color: var(--color-sin-dato);
+  font-style: italic;
+  font-weight: 500;
+}
+
+.ficha-descripcion {
+  margin: 0;
+  color: var(--color-texto-sec);
+}
+
+.ficha-nota {
+  margin: 0 0 0.35rem;
+  font-size: 0.76rem;
+  color: var(--color-texto-sec);
+}
+
+.ficha-id {
+  margin: 0.9rem 0 0;
+  font-size: 0.72rem;
+  color: var(--color-texto-sec);
+}
+
+/* Ficha como diálogo a pantalla completa (< 900 px) */
+.dialogo-ficha {
+  position: fixed;
+  inset: 0;
+  z-index: 10;
+  width: 100%;
+  max-width: 100%;
+  height: 100%;
+  height: 100dvh;
+  max-height: 100%;
+  max-height: 100dvh;
+  margin: 0;
+  padding: 0;
+  border: none;
+  background: var(--color-panel);
+  color: var(--color-texto);
+  overflow: auto;
+}
+
+.dialogo-ficha::backdrop {
+  background: rgba(15, 23, 42, 0.45);
+}
+
+.dialogo-ficha .panel-detalle {
+  border: none;
+  border-radius: 0;
+  padding: 0 1rem 1.5rem;
+  font-size: 0.9rem;
+}
+
+.ficha-barra {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  margin: 0 -1rem 0.6rem;
+  padding: 0.4rem 0.6rem;
+  background: var(--color-panel);
+  border-bottom: 1px solid var(--color-borde-suave);
+}
+
+.btn-volver {
+  min-height: 44px;
+  padding: 0 0.75rem;
+  background: transparent;
+  border: none;
+  border-radius: 6px;
+  color: var(--color-primario);
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.btn-volver:hover {
+  background: var(--color-panel-alt);
 }
 
 .sin-resultados {
@@ -571,4 +1049,44 @@ body {
   font-size: 0.76rem;
   color: var(--color-texto-sec);
   margin-top: 0.85rem;
+}
+
+/* Celular: sin zoom de iOS en campos (16 px) y objetivos táctiles de 44 px. */
+@media (max-width: 899.98px) {
+  .contenedor-principal {
+    margin: 0.75rem auto;
+  }
+
+  .cuerpo-app {
+    padding: 1rem 0.85rem;
+  }
+
+  input,
+  select,
+  textarea,
+  .campo-busqueda,
+  .panel-manual select,
+  .panel-manual input {
+    font-size: 16px;
+  }
+
+  .campo-busqueda,
+  .btn-buscar,
+  .btn-vertical,
+  .btn-agregar-manual,
+  .btn-opcion-aclaracion,
+  .panel-manual select,
+  .panel-manual input {
+    min-height: 44px;
+  }
+
+  .btn-ejemplo,
+  .btn-valor-faceta,
+  .btn-accion-secundaria {
+    min-height: 36px;
+  }
+
+  .tarjeta-cabecera {
+    flex-wrap: wrap;
+  }
 }
