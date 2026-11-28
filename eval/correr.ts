@@ -3,6 +3,8 @@
 //   pnpm eval                                   adaptador interactivo, catálogo en memoria
 //   pnpm eval --acceso=postgres                 mismo adaptador contra PostgreSQL (URL_BASE_AGENTE)
 //   pnpm eval --adaptador=gemini                AdaptadorGemini (GEMINI_API_KEY en el entorno o en .env)
+//   pnpm eval --banco=otro.json                 otro banco en eval/ con la misma forma; las maliciosas
+//                                               y el contexto de riesgo son opcionales
 //
 // Exactitud: corre las 30 consultas con el adaptador que se despliega
 // (AdaptadorInteractivo con FIXTURES_DEMO, que no tiene ninguna frase del banco) o
@@ -12,7 +14,8 @@
 // adaptador evaluado y con un modelo engañado que obedece al atacante
 // (modelo_enganado.ts), y verifica que el catálogo queda intacto.
 // La caché va apagada. El reporte se escribe en
-// eval/resultados/<fecha>-<adaptador>-<acceso>.json. Sale con código 1 si alguna
+// eval/resultados/<fecha>-<adaptador>-<acceso>.json (con -<banco> si no es el principal).
+// Sale con código 1 si alguna
 // guarda falla.
 
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
@@ -65,6 +68,8 @@ interface BancoEvaluacion {
   maliciosas: CasoGuarda[];
   contexto_riesgo: CasoGuarda[];
 }
+
+const BANCO_PRINCIPAL = "consultas.json";
 
 type App = ReturnType<typeof crearApp>;
 
@@ -142,7 +147,10 @@ async function ejecutarEvaluacion() {
   const archivoEnv = resolve(dirActual, "../.env");
   if (existsSync(archivoEnv)) process.loadEnvFile(archivoEnv);
 
-  const banco = JSON.parse(readFileSync(resolve(dirActual, "consultas.json"), "utf8")) as BancoEvaluacion;
+  const archivoBanco = argumento("banco", BANCO_PRINCIPAL);
+  const banco = JSON.parse(readFileSync(resolve(dirActual, archivoBanco), "utf8")) as BancoEvaluacion;
+  banco.maliciosas ??= [];
+  banco.contexto_riesgo ??= [];
   const tipoAdaptador = argumento("adaptador", "interactivo");
   const tipoAcceso = argumento("acceso", "memoria");
 
@@ -311,6 +319,7 @@ async function ejecutarEvaluacion() {
   const nombreAdaptador = adaptador.nombre.replace(/[^a-z0-9.-]+/gi, "-");
   const reporte = {
     fecha,
+    banco: archivoBanco,
     version_banco: banco.version,
     adaptador: adaptador.nombre,
     acceso: tipoAcceso,
@@ -343,7 +352,8 @@ async function ejecutarEvaluacion() {
     catalogo_por_vertical: catalogoIntacto,
   };
 
-  const destino = resolve(dirActual, `resultados/${fecha}-${nombreAdaptador}-${tipoAcceso}.json`);
+  const sufijoBanco = archivoBanco === BANCO_PRINCIPAL ? "" : `-${archivoBanco.replace(/\.json$/, "").replace(/[^a-z0-9_-]/gi, "_")}`;
+  const destino = resolve(dirActual, `resultados/${fecha}-${nombreAdaptador}-${tipoAcceso}${sufijoBanco}.json`);
   mkdirSync(dirname(destino), { recursive: true });
   writeFileSync(destino, JSON.stringify(reporte, null, 2) + "\n", "utf8");
   await acceso.cerrar();
