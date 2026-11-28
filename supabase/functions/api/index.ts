@@ -9,6 +9,7 @@
 // 503 en todo salvo /salud. Para servir el catálogo en memoria hay que declararlo con
 // MODO_DEMO=1. GET /salud dice qué acceso y qué adaptador están activos.
 
+import { Buffer } from "node:buffer";
 import {
   AccesoMemoria,
   AccesoPostgres,
@@ -17,11 +18,20 @@ import {
   crearApp,
   FIXTURES_DEMO,
   LimiteMemoria,
+  socketTlsPropio,
 } from "./_core.mjs";
+
+interface ConexionDeno {
+  read(destino: Uint8Array): Promise<number | null>;
+  write(datos: Uint8Array): Promise<number>;
+  close(): void;
+}
 
 declare const Deno: {
   env: { get(clave: string): string | undefined };
   serve: (manejador: (req: Request) => Response | Promise<Response>) => void;
+  connect(destino: { hostname: string; port: number }): Promise<ConexionDeno>;
+  startTls(conexion: ConexionDeno, opciones: { hostname: string }): Promise<ConexionDeno>;
 };
 
 const MAX_BYTES_CUERPO = 16_384;
@@ -39,7 +49,14 @@ const origenes = origenesConfig
 const porMinuto = leerEnteroPositivo(Deno.env.get("LIMITE_MODELO_MINUTO"), 8);
 const porDia = leerEnteroPositivo(Deno.env.get("LIMITE_MODELO_DIA"), 500);
 
-const acceso = urlBaseDatos ? new AccesoPostgres({ url: urlBaseDatos, max: 1 }) : new AccesoMemoria();
+// TCP y TLS de Deno en lugar de la capa de compatibilidad con Node, donde el driver
+// perdía el hilo del protocolo (enmienda de ADR-0002).
+const socket = socketTlsPropio({
+  conectar: (destino) => Deno.connect(destino),
+  iniciarTls: (conexion, destino) => Deno.startTls(conexion as ConexionDeno, destino),
+  aBuffer: (datos) => Buffer.from(datos.buffer, datos.byteOffset, datos.byteLength),
+});
+const acceso = urlBaseDatos ? new AccesoPostgres({ url: urlBaseDatos, max: 1, socket }) : new AccesoMemoria();
 if (sinBase) console.error("[api] Falta URL_BASE_AGENTE; define MODO_DEMO=1 para servir el catálogo de prueba en memoria");
 const adaptador = claveGemini
   ? new AdaptadorGemini({ apiKey: claveGemini, modelo: modeloGemini })

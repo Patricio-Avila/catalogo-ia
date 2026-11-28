@@ -111,6 +111,8 @@ Estas cifras no se comparan con §3.1 y §3.2, que se midieron en la nube con ot
 
 RNF-05 (recálculo sin modelo por debajo de 1 s en el 95 % de las consultas) se cumple en este entorno: `p95 = 615 ms`.
 
+**Segunda corrida, 2026-11-28** (`eval/resultados/2026-11-28-interactivo-postgres.json` y `resultados/funciones-2026-11-28.json`): el recálculo sin modelo dio `570 / 1,170 ms` de `p50` / `p95` y no cumple RNF-05. Las funciones SQL no cambiaron entre las dos corridas, y aun así todas las mediciones de `pnpm medir` tardaron de 1.5 a 2.0 veces más, incluidas las de 0005. La diferencia es del runner compartido de GitHub. Con un runner compartido, RNF-05 no se puede dar por cumplido; hace falta medirlo en hardware documentado (ADR-0001).
+
 ---
 
 ## 4. Planes de ejecución (`EXPLAIN (ANALYZE, BUFFERS)`)

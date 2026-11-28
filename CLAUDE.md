@@ -77,6 +77,8 @@ Limitaciones: la evaluación usa datos sintéticos, por lo que el comportamiento
 
 Delimitaciones: diseño e implementación de un sistema de búsqueda de productos asistido por IA sobre PostgreSQL; catálogo sintético de aproximadamente 100,000 productos en cinco o seis categorías (farmacia y belleza como ejemplos); peticiones en lenguaje natural traducidas a filtros; muestra los criterios usados e informa cuando faltan datos; solo lectura; sin recomendaciones médicas ni sugerencias de uso o sustitución de productos; interfaz web en React, PostgreSQL administrado con Supabase y funciones de procesamiento para validar las consultas.
 
+Nota del 2026-11-28 (ADR-0006): el cliente quedó en TypeScript con Vite, sin React ni Tailwind. El texto de arriba es el entregado en el S7; el cambio se declara en el documento 3 y en ADR-0007.
+
 ## 4. Decisiones cerradas (no reabrir)
 
 Del documento 1 (septiembre de 2026):
@@ -89,7 +91,7 @@ Del documento 1 (septiembre de 2026):
 - El motivo de coincidencia de cada resultado se calcula en SQL, no por el modelo.
 - Cinco guardas G1 a G5 (§8.2).
 - Datos sintéticos: generador propio, del orden de 10⁵ productos, 5 o 6 categorías, cobertura de cada atributo fijada entre 40 % y 100 %.
-- Stack: React, Supabase con PostgreSQL y Edge Functions. El proveedor del modelo se define en el documento 3.
+- Stack: React, Supabase con PostgreSQL y Edge Functions. El proveedor del modelo se define en el documento 3. (React lo sustituye ADR-0006: cliente en TypeScript sin framework.)
 - Sin datos de personas; el sistema no recomienda ni sustituye productos.
 - Innovación defendida: diccionario calculado por la base sobre datos incompletos, explicación de resultados con faltantes en SQL y facetas dinámicas, todo sobre PostgreSQL estándar. AlloyDB AI es precedente, no competidor. Descartados: RxNorm, COFEPRIS, CNIS.
 
@@ -101,7 +103,7 @@ Del 2026-10-31 (ADR-0001 y ADR-0002):
 - Modelo: interfaz única `interpretar()` con dos adaptadores (Jev y LLM con JSON acotado) y extractor numérico compartido. La elección se mide, no se opina (ADR-0003).
 - Caché exacta `servicio.cache_consultas` desde el inicio; caché semántica solo como trabajo futuro.
 - Generador en SQL (`generate_series`) en `seed.sql`, conservando en el esquema interno el valor real antes de borrarlo.
-- Frontend: React + Vite + TypeScript + Tailwind; sin SSR; móvil primero; instalable como PWA desde el navegador, sin tiendas.
+- Frontend: Vite + TypeScript sin framework (ADR-0006, aceptado el 2026-11-28; antes React + Tailwind); sin SSR; móvil primero; instalable como PWA desde el navegador, sin tiendas.
 - Pruebas: Vitest (núcleo) y pgTAP (base); CI en GitHub Actions con `supabase start`.
 - Monorepo con pnpm; licencia MIT; público desde el primer push.
 
@@ -131,12 +133,12 @@ Del 2026-10-31 (ADR-0005, sustituye la vertical de ferretería del ADR-0004):
 | D-04 | Rúbrica del integrador | Pedirla al asesor. Condiciona extensión y secciones de documentos 2 y 3 |
 | D-05 | Caché semántica con pgvector | Trabajo futuro; solo si sobra tiempo y con verificación por pregunta sí/no |
 
-Cerradas el 2026-10-31 por ADR-0004: D-03 (hosting: GitHub Pages) y D-07 (categorías: tres verticales con dos categorías cada una). Cerrada el 2026-11-01: D-06 (repo `catalogo-ia`, MIT). Cerrada el 2026-11-16 por ADR-0003: D-01 (`AdaptadorInteractivo` activo por omisión sin costo y `AdaptadorGemini` enchufable; Jev diferido). El 2026-11-21 se decidió no correr el banco contra Gemini para no generar cargos: `AdaptadorGemini` queda sin evaluar y el adaptador interactivo da 7/30. Declarada el 2026-11-16 en el Documento 2: D-08. Fuera de alcance salvo que el equipo lo pida: calificación "útil / no útil" por búsqueda, app instalable, segundo cliente.
+Cerradas el 2026-10-31 por ADR-0004: D-03 (hosting: GitHub Pages) y D-07 (categorías: tres verticales con dos categorías cada una). Cerrada el 2026-11-01: D-06 (repo `catalogo-ia`, MIT). Cerrada el 2026-11-16 por ADR-0003: D-01 (`AdaptadorInteractivo` activo por omisión sin costo y `AdaptadorGemini` enchufable; Jev diferido). El 2026-11-21 se decidió no correr el banco contra Gemini para no generar cargos: `AdaptadorGemini` queda sin evaluar. El adaptador interactivo daba 7/30; con las reglas generales del 2026-11-28 da 10/30 en memoria. No es un resultado ciego y tres consultas del banco piden valores fuera de rango (ADR-0003). D-08 (cambios respecto al documento 1), declarada el 2026-11-16 en el borrador del documento 2, quedó registrada el 2026-11-28 en ADR-0007, que es la lista única de cambios que citan los documentos 2 y 3. El 2026-11-28 se aceptó ADR-0006 (cliente sin framework). Fuera de alcance salvo que el equipo lo pida: calificación "útil / no útil" por búsqueda, app instalable, segundo cliente.
 
 ## 6. Arquitectura y flujo
 
 ```
-Cliente React estático en GitHub Pages (estado de filtros, etiquetas, facetas)
+Cliente web estático en GitHub Pages (estado de filtros, etiquetas, facetas)
    │  0. el usuario elige la vertical: farmacia | llantas | belleza
    │  POST /buscar {dominio, texto | accion, filtros_vigentes}   POST /facetas
    ▼
@@ -246,7 +248,7 @@ El DDL completo del prototipo (tabla, índices, generador de cinco categorías, 
 Estado al 2026-11-03: los 18 puntos están aplicados en `supabase/migrations/` (seis migraciones) y `supabase/seed.sql`; desde entonces las migraciones son la fuente de verdad del esquema y de las firmas SQL, y este apartado es su justificación. Diferencias respecto a lo escrito arriba: `vertical` y `categoria` viven en la migración 0001 porque `producto` tiene llave foránea a `categoria`; la configuración de las tres verticales y `atributo_meta` se insertan en la migración 0003 (es dato de configuración y debe existir también en la nube, donde el seed no corre); el conteo de total y faltantes es una función aparte, `contar_productos`; la caché se usa por `servicio.cache_obtener` y `servicio.cache_guardar` (SECURITY DEFINER) porque el agente no tiene permisos sobre la tabla; `comparar_productos` acepta `p_candidatos bigint[]` opcional para comparar productos concretos; `obtener_verticales()` sirve la configuración al cliente. El rol que corre las migraciones (`postgres`, sin superusuario en Supabase) recibe membresía con SET en `catalogo_duenio` y `agente_lectura`. La contraseña de `agente_api` la fija `seed.sql` solo en local; en la nube se fija a mano en T9. Primera carga medida en el runner de GitHub: 100,020 productos en 35 s con el trigger activo; 140 pruebas pgTAP en `supabase/tests/database/`.
 
 Al 2026-11-20 (revisión): ocho migraciones. La 0007 agrega `filtrar_productos` y `estado_filtro`, de modo que búsqueda, conteo y facetas ya no arman arreglos sobre toda la categoría; `07_busqueda_equivalencia` las compara contra `evaluar_filtros`, que se conserva como referencia. La 0008 hace que `comparar_productos` falle cerrado cuando a la referencia le falta un atributo de contexto obligatorio: si es de riesgo, nivel 0; si es de uso, nivel máximo 0.5. CI corre el banco contra PostgreSQL y `pnpm medir` con una contraseña de `agente_api` generada en cada corrida. Medido en CI el 2026-11-21:
-- RNF-05 se cumple: el recálculo sin modelo tiene `p95` de 615 ms.
+- RNF-05 se cumplió en esa corrida: el recálculo sin modelo tuvo `p95` de 615 ms. En la del 2026-11-28 dio 1,170 ms: el runner fue de 1.5 a 2 veces más lento en las mismas funciones SQL, así que RNF-05 no se da por cumplido sin hardware documentado (ADR-0003).
 - Con 0007 el recorrido de la categoría tarda de 200 a 380 ms con cualquier número de filtros. Es más rápida que 0005 con 3 a 5 filtros y más lenta con 1 o 2.
 - El peor `/buscar` (5 filtros con faltantes) suma 1.13 s.
 
@@ -348,7 +350,7 @@ Cada fase se cierra completa (pruebas, despliegue, nota en el documento que toqu
 | T2 | Migraciones: 0001 esquemas, `producto` con `dominio`, `descripcion` e índices (GIN de atributos, `(dominio, categoria)`, `pg_trgm`); 0002 roles y usuario de conexión; 0003 `vertical` y `atributo_meta` con el trigger de obligatorios; 0004 diccionario por dominio con versión y refresco; 0005 `buscar_productos`, `calcular_facetas` y `comparar_productos` con el contrato de §6 y los cambios de §7.2; 0006 `cache_consultas`; `seed.sql` con el generador de tres verticales (§7.4), `producto_verdad` y `par_trampa` | `supabase db reset` en limpio; pgTAP verde para G3, G4 y el trigger (RF-11); coberturas del diccionario coinciden con las metas del generador (RF-08) |
 | T3 | Núcleo: esquema Zod, validación G1 con `inferible`, extractor numérico (precios, cantidades, medidas de llanta, índices), interfaz `interpretar()` con adaptador de fixtures, acceso a datos con driver, prueba de vocabulario prohibido | Vitest verde; cobertura de G1 y G2 |
 | T4 | API Hono: `/buscar`, `/facetas`, OpenAPI generado, CORS con lista de orígenes (local y `https://<usuario>.github.io`) | Llamadas de prueba desde `supabase functions serve`; contrato publicado en `docs/api/openapi.json` |
-| T5 | Cliente React móvil primero: selector de vertical leído de `vertical`; pantalla principal según maqueta del S06 (campo único, etiquetas, casilla de sin dato, facetas con conteos) con resultados que muestran categoría, uso previsto, descripción y motivo; control "agregar etiqueta" con autocompletado del diccionario (RF-10); pantallas del S7 (detalle, aclaración, sin resultados, menú); aviso en farmacia; manifiesto PWA | Flujo completo en las tres verticales contra Supabase local con el adaptador de fixtures, en texto libre y en modo manual |
+| T5 | Cliente web móvil primero (TypeScript sin framework, ADR-0006): selector de vertical leído de `vertical`; pantalla principal según maqueta del S06 (campo único, etiquetas, casilla de sin dato, facetas con conteos) con resultados que muestran categoría, uso previsto, descripción y motivo; control "agregar etiqueta" con autocompletado del diccionario (RF-10); pantallas del S7 (detalle, aclaración, sin resultados, menú); aviso en farmacia; manifiesto PWA | Flujo completo en las tres verticales contra Supabase local con el adaptador de fixtures, en texto libre y en modo manual |
 | T6 | Banco de evaluación y arnés | 30 consultas (10 por vertical) con referencia SQL; línea base con el modo manual; reporte reproducible |
 | T7 | Adaptadores reales: LLM-JSON y Jev; correr evaluación; ADR-0003 | Reporte comparado en `eval/resultados/`; ADR-0003 escrito |
 | T8 | Comparación EAV y tabla ancha (documento 2) | Tablas de tamaño, p50/p95 y planes; clase de operadores GIN elegida |
@@ -389,7 +391,7 @@ pnpm --filter web dev
 ```
 CLAUDE.md
 README.md  LICENSE  .gitignore  .editorconfig  pnpm-workspace.yaml  package.json
-apps/web/                 React + Vite + TypeScript + Tailwind
+apps/web/                 Vite + TypeScript sin framework (ADR-0006)
 packages/core/            validación, extractor, adaptadores de modelo, acceso a datos, tipos
 supabase/
   config.toml
@@ -400,7 +402,8 @@ supabase/
 eval/                     consultas, comparaciones, escenarios, imágenes, referencia SQL, arnés, resultados
 docs/
   adr/                    decisiones (0001 base, 0002 middleware, 0003 modelo, 0004 cliente y hosting,
-                          0005 comparación, contexto y asistente, 0006 cliente sin framework: propuesta)
+                          0005 comparación, contexto y asistente, 0006 cliente sin framework,
+                          0007 cambios respecto al documento 1)
   marco_teorico.md        fuentes y conceptos
   inversion.md            efectivo, variable por uso y horas
   plan_de_trabajo.md      calendario de seis semanas, frentes y criterios de terminado

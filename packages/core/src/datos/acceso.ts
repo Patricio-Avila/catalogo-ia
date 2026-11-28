@@ -28,6 +28,7 @@ import type { CacheInterpretaciones, EntradaCache } from "../cache/clave";
 import { Diccionario, Vertical } from "../contrato/diccionario";
 import type { Dominio, ObjetoFiltros } from "../contrato/filtros";
 import { Faceta, Resultado, type ResultadoBusqueda } from "../contrato/respuestas";
+import type { socketTlsPropio } from "./socket_propio";
 import { z } from "zod";
 
 /** Tope duro de filas por respuesta; la función SQL aplica el mismo LEAST (RNF-04). */
@@ -52,6 +53,11 @@ export interface OpcionesPostgres {
   max?: number;
   /** Tope de reloj por operación en milisegundos; por omisión TOPE_OPERACION_MS. */
   topeMs?: number;
+  /**
+   * Socket propio con TCP y TLS del runtime (`socketTlsPropio`). La Edge Function lo
+   * pasa con Deno.connect y Deno.startTls; en Node se usa el socket del driver.
+   */
+  socket?: ReturnType<typeof socketTlsPropio>;
 }
 
 /**
@@ -135,6 +141,8 @@ export function opcionesConexion(opciones: OpcionesPostgres): postgres.Options<R
     idle_timeout: 20,
     connect_timeout: 10,
     ...(esLocal ? {} : { ssl: "require" as const }),
+    // El socket propio ya negoció TLS; el driver no repite la SSLRequest.
+    ...(opciones.socket ? { socket: opciones.socket as NonNullable<postgres.Options<Record<string, never>>["socket"]> } : {}),
   };
 }
 

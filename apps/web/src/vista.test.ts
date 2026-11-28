@@ -18,11 +18,13 @@ describe("Cliente y vista web (T5)", () => {
 
     expect(ctrl.estado.verticales).toHaveLength(3);
     expect(ctrl.estado.dominioActual).toBe("belleza");
-    // Adaptador interactivo sin fixtures del banco: entiende fragancia y tipo de piel,
-    // no "hidratante" ni la categoría (la evaluación reporta estos huecos).
+    // Adaptador interactivo sin fixtures del banco: entiende fragancia, tipo de piel y
+    // "hidratante" como forma derivada de hidratar (sugerida); no deduce la categoría
+    // porque esos valores existen en las dos (la evaluación reporta este hueco).
     expect(ctrl.estado.respuesta?.filtros.categoria).toBeNull();
-    expect(ctrl.estado.respuesta?.etiquetas.map((e) => e.atributo)).toEqual(["fragancia", "tipo_piel"]);
-    expect(ctrl.estado.respuesta?.total).toBe(6);
+    expect(ctrl.estado.respuesta?.etiquetas.map((e) => e.atributo)).toEqual(["uso_previsto", "fragancia", "tipo_piel"]);
+    expect(ctrl.estado.respuesta?.etiquetas.find((e) => e.atributo === "uso_previsto")?.sugerida).toBe(true);
+    expect(ctrl.estado.respuesta?.total).toBe(4);
     expect(ctrl.estado.respuesta?.faltantes).toBe(2);
     expect(contenedor.innerHTML).toContain("Catálogo · búsqueda asistida");
     expect(contenedor.innerHTML).toContain("Crema facial hidratante 50 ml");
@@ -48,7 +50,7 @@ describe("Cliente y vista web (T5)", () => {
     // Incluir productos sin dato (RF-06)
     await ctrl.ejecutarAccion({ tipo: "incluir_sin_dato", valor: true });
     expect(ctrl.estado.respuesta?.llamo_modelo).toBe(false);
-    expect(ctrl.estado.respuesta?.total).toBe(8);
+    expect(ctrl.estado.respuesta?.total).toBe(6);
     expect(contenedor.innerHTML).toContain("Sin dato:");
 
     // Quitar etiqueta (RF-03)

@@ -1,0 +1,488 @@
+{
+  "fecha": "2026-11-28",
+  "servidor": "PostgreSQL 17.11 on x86_64-pc-linux-gnu, compiled by gcc (GCC) 15.2.0, 64-bit",
+  "entorno": "GitHub Actions (ubuntu-latest), Supabase local",
+  "categoria": "belleza/cuidado_facial",
+  "productos_en_categoria": 16669,
+  "repeticiones": 20,
+  "calentamiento": 2,
+  "filtros": [
+    {
+      "atributo": "tipo_piel",
+      "operador": "=",
+      "valor": "sensible"
+    },
+    {
+      "atributo": "fragancia",
+      "operador": "=",
+      "valor": "sin perfume"
+    },
+    {
+      "atributo": "precio",
+      "operador": "<",
+      "valor": 300
+    },
+    {
+      "atributo": "vegano",
+      "operador": "=",
+      "valor": true
+    },
+    {
+      "atributo": "sin_parabenos",
+      "operador": "=",
+      "valor": true
+    }
+  ],
+  "mediciones": [
+    {
+      "implementacion": "0007",
+      "funcion": "buscar",
+      "filtros": 1,
+      "incluir_sin_dato": false,
+      "p50_ms": 55.97,
+      "p95_ms": 57.31,
+      "errores": []
+    },
+    {
+      "implementacion": "0007",
+      "funcion": "contar",
+      "filtros": 1,
+      "incluir_sin_dato": false,
+      "p50_ms": 395.94,
+      "p95_ms": 411.38,
+      "errores": []
+    },
+    {
+      "implementacion": "0007",
+      "funcion": "facetas",
+      "filtros": 1,
+      "incluir_sin_dato": false,
+      "p50_ms": 103.53,
+      "p95_ms": 105.37,
+      "errores": []
+    },
+    {
+      "implementacion": "0005",
+      "funcion": "buscar",
+      "filtros": 1,
+      "incluir_sin_dato": false,
+      "p50_ms": 38.24,
+      "p95_ms": 41.7,
+      "errores": []
+    },
+    {
+      "implementacion": "0005",
+      "funcion": "contar",
+      "filtros": 1,
+      "incluir_sin_dato": false,
+      "p50_ms": 218.85,
+      "p95_ms": 230.31,
+      "errores": []
+    },
+    {
+      "implementacion": "0007",
+      "funcion": "buscar",
+      "filtros": 2,
+      "incluir_sin_dato": false,
+      "p50_ms": 25.3,
+      "p95_ms": 25.78,
+      "errores": []
+    },
+    {
+      "implementacion": "0007",
+      "funcion": "contar",
+      "filtros": 2,
+      "incluir_sin_dato": false,
+      "p50_ms": 569.74,
+      "p95_ms": 573.93,
+      "errores": []
+    },
+    {
+      "implementacion": "0007",
+      "funcion": "facetas",
+      "filtros": 2,
+      "incluir_sin_dato": false,
+      "p50_ms": 32.01,
+      "p95_ms": 32.3,
+      "errores": []
+    },
+    {
+      "implementacion": "0005",
+      "funcion": "buscar",
+      "filtros": 2,
+      "incluir_sin_dato": false,
+      "p50_ms": 15.05,
+      "p95_ms": 18.86,
+      "errores": []
+    },
+    {
+      "implementacion": "0005",
+      "funcion": "contar",
+      "filtros": 2,
+      "incluir_sin_dato": false,
+      "p50_ms": 424.8,
+      "p95_ms": 444.22,
+      "errores": []
+    },
+    {
+      "implementacion": "0007",
+      "funcion": "buscar",
+      "filtros": 3,
+      "incluir_sin_dato": false,
+      "p50_ms": 34.32,
+      "p95_ms": 36.68,
+      "errores": []
+    },
+    {
+      "implementacion": "0007",
+      "funcion": "contar",
+      "filtros": 3,
+      "incluir_sin_dato": false,
+      "p50_ms": 645.04,
+      "p95_ms": 674.91,
+      "errores": []
+    },
+    {
+      "implementacion": "0007",
+      "funcion": "facetas",
+      "filtros": 3,
+      "incluir_sin_dato": false,
+      "p50_ms": 33.81,
+      "p95_ms": 34.21,
+      "errores": []
+    },
+    {
+      "implementacion": "0005",
+      "funcion": "buscar",
+      "filtros": 3,
+      "incluir_sin_dato": false,
+      "p50_ms": 27.09,
+      "p95_ms": 32.01,
+      "errores": []
+    },
+    {
+      "implementacion": "0005",
+      "funcion": "contar",
+      "filtros": 3,
+      "incluir_sin_dato": false,
+      "p50_ms": 901.56,
+      "p95_ms": 918.99,
+      "errores": []
+    },
+    {
+      "implementacion": "0007",
+      "funcion": "buscar",
+      "filtros": 4,
+      "incluir_sin_dato": false,
+      "p50_ms": 13.05,
+      "p95_ms": 13.9,
+      "errores": []
+    },
+    {
+      "implementacion": "0007",
+      "funcion": "contar",
+      "filtros": 4,
+      "incluir_sin_dato": false,
+      "p50_ms": 662.35,
+      "p95_ms": 672.57,
+      "errores": []
+    },
+    {
+      "implementacion": "0007",
+      "funcion": "facetas",
+      "filtros": 4,
+      "incluir_sin_dato": false,
+      "p50_ms": 9.56,
+      "p95_ms": 9.67,
+      "errores": []
+    },
+    {
+      "implementacion": "0005",
+      "funcion": "buscar",
+      "filtros": 4,
+      "incluir_sin_dato": false,
+      "p50_ms": 9.06,
+      "p95_ms": 9.22,
+      "errores": []
+    },
+    {
+      "implementacion": "0005",
+      "funcion": "contar",
+      "filtros": 4,
+      "incluir_sin_dato": false,
+      "p50_ms": 1058.24,
+      "p95_ms": 1090.83,
+      "errores": []
+    },
+    {
+      "implementacion": "0007",
+      "funcion": "buscar",
+      "filtros": 5,
+      "incluir_sin_dato": false,
+      "p50_ms": 7.22,
+      "p95_ms": 7.33,
+      "errores": []
+    },
+    {
+      "implementacion": "0007",
+      "funcion": "contar",
+      "filtros": 5,
+      "incluir_sin_dato": false,
+      "p50_ms": 676.44,
+      "p95_ms": 690.53,
+      "errores": []
+    },
+    {
+      "implementacion": "0007",
+      "funcion": "facetas",
+      "filtros": 5,
+      "incluir_sin_dato": false,
+      "p50_ms": 5.1,
+      "p95_ms": 5.27,
+      "errores": []
+    },
+    {
+      "implementacion": "0005",
+      "funcion": "buscar",
+      "filtros": 5,
+      "incluir_sin_dato": false,
+      "p50_ms": 4.98,
+      "p95_ms": 5.07,
+      "errores": []
+    },
+    {
+      "implementacion": "0005",
+      "funcion": "contar",
+      "filtros": 5,
+      "incluir_sin_dato": false,
+      "p50_ms": 1235.25,
+      "p95_ms": 1255.82,
+      "errores": []
+    },
+    {
+      "implementacion": "0007",
+      "funcion": "buscar",
+      "filtros": 1,
+      "incluir_sin_dato": true,
+      "p50_ms": 391.59,
+      "p95_ms": 399.77,
+      "errores": []
+    },
+    {
+      "implementacion": "0007",
+      "funcion": "contar",
+      "filtros": 1,
+      "incluir_sin_dato": true,
+      "p50_ms": 394.39,
+      "p95_ms": 417.92,
+      "errores": []
+    },
+    {
+      "implementacion": "0007",
+      "funcion": "facetas",
+      "filtros": 1,
+      "incluir_sin_dato": true,
+      "p50_ms": 598.3,
+      "p95_ms": 614.16,
+      "errores": []
+    },
+    {
+      "implementacion": "0005",
+      "funcion": "buscar",
+      "filtros": 1,
+      "incluir_sin_dato": true,
+      "p50_ms": 217.59,
+      "p95_ms": 221.33,
+      "errores": []
+    },
+    {
+      "implementacion": "0005",
+      "funcion": "contar",
+      "filtros": 1,
+      "incluir_sin_dato": true,
+      "p50_ms": 216.94,
+      "p95_ms": 232.94,
+      "errores": []
+    },
+    {
+      "implementacion": "0007",
+      "funcion": "buscar",
+      "filtros": 2,
+      "incluir_sin_dato": true,
+      "p50_ms": 564.12,
+      "p95_ms": 575.9,
+      "errores": []
+    },
+    {
+      "implementacion": "0007",
+      "funcion": "contar",
+      "filtros": 2,
+      "incluir_sin_dato": true,
+      "p50_ms": 563.71,
+      "p95_ms": 584.61,
+      "errores": []
+    },
+    {
+      "implementacion": "0007",
+      "funcion": "facetas",
+      "filtros": 2,
+      "incluir_sin_dato": true,
+      "p50_ms": 637.77,
+      "p95_ms": 684.23,
+      "errores": []
+    },
+    {
+      "implementacion": "0005",
+      "funcion": "buscar",
+      "filtros": 2,
+      "incluir_sin_dato": true,
+      "p50_ms": 424.78,
+      "p95_ms": 435.07,
+      "errores": []
+    },
+    {
+      "implementacion": "0005",
+      "funcion": "contar",
+      "filtros": 2,
+      "incluir_sin_dato": true,
+      "p50_ms": 424.23,
+      "p95_ms": 431.12,
+      "errores": []
+    },
+    {
+      "implementacion": "0007",
+      "funcion": "buscar",
+      "filtros": 3,
+      "incluir_sin_dato": true,
+      "p50_ms": 649.98,
+      "p95_ms": 660.89,
+      "errores": []
+    },
+    {
+      "implementacion": "0007",
+      "funcion": "contar",
+      "filtros": 3,
+      "incluir_sin_dato": true,
+      "p50_ms": 643.52,
+      "p95_ms": 650.2,
+      "errores": []
+    },
+    {
+      "implementacion": "0007",
+      "funcion": "facetas",
+      "filtros": 3,
+      "incluir_sin_dato": true,
+      "p50_ms": 664.29,
+      "p95_ms": 686.72,
+      "errores": []
+    },
+    {
+      "implementacion": "0005",
+      "funcion": "buscar",
+      "filtros": 3,
+      "incluir_sin_dato": true,
+      "p50_ms": 905.96,
+      "p95_ms": 922.02,
+      "errores": []
+    },
+    {
+      "implementacion": "0005",
+      "funcion": "contar",
+      "filtros": 3,
+      "incluir_sin_dato": true,
+      "p50_ms": 906.51,
+      "p95_ms": 919.44,
+      "errores": []
+    },
+    {
+      "implementacion": "0007",
+      "funcion": "buscar",
+      "filtros": 4,
+      "incluir_sin_dato": true,
+      "p50_ms": 666.36,
+      "p95_ms": 681.12,
+      "errores": []
+    },
+    {
+      "implementacion": "0007",
+      "funcion": "contar",
+      "filtros": 4,
+      "incluir_sin_dato": true,
+      "p50_ms": 662.67,
+      "p95_ms": 682.77,
+      "errores": []
+    },
+    {
+      "implementacion": "0007",
+      "funcion": "facetas",
+      "filtros": 4,
+      "incluir_sin_dato": true,
+      "p50_ms": 677.96,
+      "p95_ms": 698.56,
+      "errores": []
+    },
+    {
+      "implementacion": "0005",
+      "funcion": "buscar",
+      "filtros": 4,
+      "incluir_sin_dato": true,
+      "p50_ms": 1054.61,
+      "p95_ms": 1078.48,
+      "errores": []
+    },
+    {
+      "implementacion": "0005",
+      "funcion": "contar",
+      "filtros": 4,
+      "incluir_sin_dato": true,
+      "p50_ms": 1058.5,
+      "p95_ms": 1100.37,
+      "errores": []
+    },
+    {
+      "implementacion": "0007",
+      "funcion": "buscar",
+      "filtros": 5,
+      "incluir_sin_dato": true,
+      "p50_ms": 683.03,
+      "p95_ms": 689.74,
+      "errores": []
+    },
+    {
+      "implementacion": "0007",
+      "funcion": "contar",
+      "filtros": 5,
+      "incluir_sin_dato": true,
+      "p50_ms": 676.27,
+      "p95_ms": 701.3,
+      "errores": []
+    },
+    {
+      "implementacion": "0007",
+      "funcion": "facetas",
+      "filtros": 5,
+      "incluir_sin_dato": true,
+      "p50_ms": 689.19,
+      "p95_ms": 716.12,
+      "errores": []
+    },
+    {
+      "implementacion": "0005",
+      "funcion": "buscar",
+      "filtros": 5,
+      "incluir_sin_dato": true,
+      "p50_ms": 1233.36,
+      "p95_ms": 1253.02,
+      "errores": []
+    },
+    {
+      "implementacion": "0005",
+      "funcion": "contar",
+      "filtros": 5,
+      "incluir_sin_dato": true,
+      "p50_ms": 1231.25,
+      "p95_ms": 1276.42,
+      "errores": []
+    }
+  ]
+}

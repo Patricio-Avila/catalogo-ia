@@ -1,6 +1,6 @@
 # ADR-0004: Cliente web en GitHub Pages y catálogo de tres verticales
 
-- Estado: aceptada, 2026-10-31. Reemplaza el punto 9 (hosting web) del ADR-0002. ADR-0003 queda reservado para la decisión del modelo. La vertical de ferretería del punto 4 queda sustituida por llantas en ADR-0005 el mismo día; el resto sigue vigente. El 2026-11-20 se propone en ADR-0006 quitar React y Tailwind del punto 1 (el cliente construido no los usa); pendiente del visto bueno del equipo.
+- Estado: aceptada, 2026-10-31. Reemplaza el punto 9 (hosting web) del ADR-0002. ADR-0003 queda reservado para la decisión del modelo. La vertical de ferretería del punto 4 queda sustituida por llantas en ADR-0005 el mismo día; el resto sigue vigente. La parte de React y Tailwind del punto 1 queda reemplazada por ADR-0006, aceptado el 2026-11-28: el cliente es TypeScript sin framework.
 - Decisores: Patricio Avila por el equipo (Valeria Hernández, Alejandro Gómez).
 - Ámbito: la aplicación con la que se prueba el sistema, dónde se sirve y qué catálogo muestra.
 

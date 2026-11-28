@@ -84,6 +84,8 @@ export type { CacheInterpretaciones, EntradaCache, DatosClave } from "./cache/cl
 // Acceso a datos
 export { AccesoPostgres, LIMITE_MAXIMO, LIMITE_POR_OMISION } from "./datos/acceso";
 export type { AccesoDatos, OpcionesPostgres } from "./datos/acceso";
+export { socketTlsPropio } from "./datos/socket_propio";
+export type { ConexionRed, PrimitivasRed } from "./datos/socket_propio";
 export { AccesoNulo } from "./datos/acceso_nulo";
 export { AccesoMemoria } from "./datos/acceso_memoria";
 
